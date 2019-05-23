@@ -1,0 +1,53 @@
+extends components/layout.pug
+
+block styles
+
+block navtitle
+    a.teal-text.brand-logo.truncate(href="/") SPARE
+
+block content
+    #spare(v-once)
+        .card.sharp
+            .card-content
+                .row
+                    h4.col.s12 Edit {{spare.case}}
+                    form#createspareform.col.s12
+                        .row
+                            .input-field.col.s12
+                                input#case.validate(type="text", name="case", v-model="spare.case")
+                                label(for="case") Case
+
+                            .input-field.col.s12
+                                input#incharge.validate(type="text", name="incharge", v-model="spare.incharge.name")
+                                label(for="incharge") Incharge
+
+                            .input-field.col.s12
+                                input#incharge-email.validate(type="email", name="incharge-email", v-model="spare.incharge.email")
+                                label(for="incharge-email") Incharge Email
+
+                            .input-field.col.s12
+                                input#incharge-phone.validate(type="tel", name="incharge-phone", v-model="spare.incharge.phone")
+                                label(for="incharge-phone") Incharge Phone
+
+                            .input-field.col.s12
+                                input#supplier.validate(type="text", name="supplier", v-model="spare.supplier.name")
+                                label(for="supplier") Supplier
+
+                            .input-field.col.s12
+                                input#supplier-email.validate(type="email", name="supplier-email", v-model="spare.supplier.email")
+                                label(for="supplier-email") Supplier Email
+
+                            .input-field.col.s12
+                                input#supplier-phone.validate(type="tel", name="supplier-phone", v-model="spare.supplier.phone")
+                                label(for="supplier-phone") Supplier Phone  
+            .card-action
+                .row
+                    .col.s12.right-align
+                        //- a.modal-close.waves-effect.waves-red.btn-flat.red-text(href="#!") Cancel
+                        a.btn.btn-flat.waves-effect(@click="window.history.back()") Back
+                        a.btn.waves-effect.waves-light.green.white-text(@click="updateSpare(spare._id)") Submit
+
+
+
+block scripts
+    script(src="/js/init/spare.js")

@@ -1,0 +1,214 @@
+extends components/layout.pug
+
+block styles
+
+block navtitle
+    a.teal-text.brand-logo.truncate(href="/") CALIBRATION STATUS
+
+block content
+    //- .green.darken-2.hide-on-med-and-down
+        .row
+            .col.s12
+                h4.header.light.white-text Dashboard
+
+            //- .divider.green.darken-5
+    #machinemodal.modal.modal-fixed-footer
+        .modal-content
+
+            .row
+                h4.col.s12 Create machine
+                form#createmachineform.col.s12
+                    .row
+                        .input-field.col.s12
+                            input#name.validate(type="text", name="name")
+                            label(for="name") Name
+
+                        .input-field.col.s6
+                            input#interval.validate(type="text", name="interval")
+                            label(for="interval") Checkup Interval
+                        .input-field.col.s6
+                            select(name="unit")
+                                option(value="days") Days
+                                option(value="months" selected) Months
+                                option(value="years") Years    
+                            //- label Unit
+                        .input-field.col.s6
+                            select(name="case")
+                                option(value="open") Open
+                                option(value="lte") LTE
+                                option(value="cp") CP
+                                option(value="gfr") GFR
+                            label Case through
+
+                        .input-field.col.s6
+                            input#testing.validate(type="text", name="testing")
+                            label(for="testing") What to test
+
+
+                        .input-field.col.s12
+                            input#remark(type="text", name="remark")
+                            label(for="remark") Remarks
+
+
+                    //- .row
+                        .input-field.col.s4
+                            input#sector.validate(type="text", name="sector")
+                            label(for="sector") Sector
+                        .input-field.col.s4
+                            input#number.validate(type="number", name="number")
+                            label(for="number") Number
+                        .input-field.col.s4
+                            input#shop.validate(type="text", name="shop")
+                            label(for="shop") Shop
+
+
+
+                    .row
+                        .input-field.col.s6
+                            input#incharge.validate(type="text", name="incharge")
+                            label(for="incharge") Incharge
+
+                        .input-field.col.s6
+                            input#incharge-email.validate(type="email", name="incharge-email")
+                            label(for="incharge-email") Incharge Email
+
+                        .input-field.col.s6
+                            input#incharge-phone.validate(type="tel", name="incharge-phone")
+                            label(for="incharge-phone") Phone
+
+                    .row
+                        .input-field.col.s6
+                            input#supplier.validate(type="text", name="supplier")
+                            label(for="supplier") Supplier
+
+                        .input-field.col.s6
+                            input#supplier-email.validate(type="email", name="supplier-email")
+                            label(for="supplier-email") Supplier Email
+
+                        .input-field.col.s6
+                            input#supplier-phone.validate(type="tel", name="supplier-phone")
+                            label(for="supplier-phone") Supplier Phone
+                        .input-field.col.s6
+                            input#supplier-reminder.validate(type="number", name="supplier-reminder", value="10", min="0")
+                            label(for="supplier-reminder") Reminder before (days)
+
+
+
+
+        .modal-footer
+            a.modal-close.waves-effect.waves-red.btn-flat.red-text(href="#!") Cancel
+            a.btn.modal-close.waves-effect.waves-light.green.white-text(href="javascript:createMachine();") Submit
+
+
+
+
+    .fixed-action-btn
+        // Modal Trigger
+        a.waves-effect.waves-light.btn-floating.btn-large.red.modal-trigger(href="#machinemodal")
+            i.material-icons.large add
+
+
+    #upcoming
+    
+        ul.collapsible.z-depth-0
+            li(v-for="machine in machines")
+                .collapsible-header.z-depth-0(v-bind:class="{'burning-orange white-text': machine.soon }")
+                    p.full-width.no-margin {{machine.name}} 
+                        span.right Next: {{machine.checkup.next}} | {{machine.soondays}} days left
+                .collapsible-body.card.no-padding.z-depth-0
+                    .card-content
+                        .row.no-margin
+                            //- p.light.col.s12 # {{machine._id}}
+
+                            span.card-title.col.s12.grey-text.text-darken-4 {{machine.name}}
+
+                            p.light.col.s12 Case through: {{machine.case}}
+                                //- i.material-icons.right.red-text(@click='machineDelete(machine._id)') delete
+                    .divider
+                    .card-content
+                        .row.no-margin
+                            h5.col.s12.light Testing
+
+                            p.col.s12 Test: #[span.strong {{machine.testing}} ]
+
+                            p.col.s4 Next 
+                                br
+                                | #[span.strong {{machine.checkup.next}} ]
+                            p.col.s4 Last
+                                br
+                                | {{machine.checkup.last}}
+                            p.col.s4 Frequency
+                                br
+                                | {{machine.checkup.interval.value}} {{machine.checkup.interval.unit}}
+                            //- p.col.s6 {{machine.location.shop}} - {{machine.location.sector}}
+
+
+                    .divider
+                    .card-content
+                        .row.no-margin        
+                            h5.col.s12.light Supplier
+
+                            h6.col.s12.no-margin {{machine.supplier.name}}
+
+                            p.col.s12 Email: {{machine.supplier.email}}
+
+                            p.col.s12 Phone: {{machine.supplier.phone}}
+
+                            p.col.s12 Reminder interval: {{machine.supplier.reminder}} days
+
+                            p.col.s12 Reminder on: {{machine.reminder.next}} 
+
+                    .divider
+                    .card-content
+                        .row.no-margin        
+                            h5.col.s12.light Incharge
+
+                            h6.col.s12.no-margin {{machine.incharge.name}}
+
+                            p.col.s12 Email: {{machine.incharge.email}}
+
+                            p.col.s12 Phone: {{machine.incharge.phone}}
+
+
+
+
+                    .card-action
+                        .row.no-margin
+                            //- h5.col.s12.light Remarks
+                            //- p.col.s12.no-margin {{machine.remark}}
+
+                            .input-field.col.s12
+                                input(type="text", name="remark", v-bind:id="'remark'+machine._id", v-model="machine.remark", @change="saveRemark($event, machine._id)")
+                                label(v-bind:for="'remark'+machine._id") Remark 
+                                //- a.btn.btn-flat.btn-bordered.curvy.right(@click="saveRemark(machine._id)")
+                                    i.material-icons check
+
+                            .input-field.col.s12
+                                input.datepicker(type="text", name="date", v-bind:id="'date'+machine._id")
+                                label(v-bind:for="'date'+machine._id") Add record date (yyyy-mm-dd)
+                            .col.s12
+                                a.btn.btn-flat.btn-bordered.curvy(@click="addRecord(machine._id)")
+                                    i.material-icons add
+
+                                //- a.btn.btn-flat.btn-bordered.curvy(@click="viewMachine(machine._id)") View
+                                    i.material-icons visibility
+                                a.btn.btn-flat.btn-bordered.curvy.modal-trigger(v-bind:href="'#record'+machine._id")
+                                    i.material-icons visibility
+
+                                a.btn.btn-flat.btn-bordered.curvy(@click='machineEdit(machine._id)')
+                                    i.material-icons edit
+
+                                a.btn.btn-flat.red-text.btn-bordered.curvy.modal-trigger(@click='machineDelete(machine._id)')
+                                    i.material-icons delete
+
+                .modal.white(v-bind:id="'record'+machine._id")
+                    ul.collection
+                        li.collection-header
+                            h5.light.center Past calibration record
+                        li.collection-item(v-for="record in machine.checkup.history")
+                            span {{moment(record).format('DD MMM YYYY')}}
+                            a.secondary-content.red-text(@click="removeRecord(machine._id, record)")
+                                i.material-icons close
+
+block scripts
+    script(src="/js/init/calibration.js")

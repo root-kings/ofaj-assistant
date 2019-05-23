@@ -1,0 +1,84 @@
+$primary-fg: #ffffff;
+$sec-fg: #a0a0a0;
+$bg-page: #07000f;
+$bg-comp: #151427;
+$divider-color: rgba(160, 160, 160, 0.2);
+$high-fg: #ffbb00;
+nav {
+    .brand-logo {
+        font-size: 1.5rem;
+    }
+}
+
+body.dark {
+    background: $bg-page;
+    color: $primary-fg;
+    #waitoverlay {
+        background-color: rgba(0, 0, 0, 0.5);
+        /* Black background with opacity */
+    }
+    nav {
+        background: $bg-page;
+        .brand-logo {
+            color: $primary-fg;
+            font-size: 1.5rem;
+        }
+        .sidenav-trigger {
+            color: $high-fg;
+        }
+    }
+    .collapsible {
+        border-color: $bg-page;
+        color: $sec-fg;
+        .collapsible-header {
+            // font-size: 1.2em;
+            background: $bg-page;
+            border-color: $bg-page;
+        }
+        .collapsible-header.burning-orange {
+            background: #ff416c;
+            /* fallback for old browsers */
+            background: -webkit-linear-gradient(to left, #ff4b2b, #ff416c);
+            /* Chrome 10-25, Safari 5.1-6 */
+            background: linear-gradient(to left, #ff4b2b, #ff416c);
+            /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+        }
+        .collapsible-body.card {
+            // font-size: 1.25em;
+            background: $bg-page;
+            border-color: $bg-page;
+            .divider {
+                background: $divider-color;
+            }
+            .card-content {
+                .strong {
+                    color: $primary-fg;
+                }
+                .card-title {
+                    color: $high-fg;
+                }
+                h5 {
+                    color: $primary-fg;
+                }
+            }
+            .card-action {
+                a.btn.btn-flat {
+                    color: $primary-fg;
+                }
+            }
+        }
+        li.active {
+            background: $bg-comp;
+            .collapsible-header {
+                background: $bg-comp;
+                color: $primary-fg;
+                span.right {
+                    color: $sec-fg;
+                }
+            }
+            .collapsible-body.card {
+                background: $bg-comp;
+            }
+        }
+    }
+}

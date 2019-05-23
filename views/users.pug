@@ -1,0 +1,18 @@
+extends components/layout.pug
+
+block styles
+
+block navtitle
+    a.teal-text.brand-logo.truncate(href="/") USERS
+block content
+    
+    #users
+        ul.collection 
+            li.collection-item(v-for="user in users") {{user.name}}
+                a.red-text(@click="deleteUser(user._id)")
+                    i.material-icons.right delete
+                a.teal-text(@click="activateUser(user._id)" v-if="!user.active")
+                    i.material-icons.right check
+                
+block scripts
+    script(src="/js/init/users.js")

@@ -1,0 +1,80 @@
+extends components/layout.pug
+
+block styles
+
+block content
+
+    section#documentList
+        .container
+            .row
+                h4.light.col.s12 Documents
+                
+            //- .row
+                h5.light.col.s12 Attention needed
+                .col.s12
+                    .collection
+                        a.collection-item(v-for="document in documents.urgent", :key="document._id", @click="viewDocument(document._id)") {{document.name}}
+                            span.new.badge.red(data-badge-caption="urgent")
+
+            .row
+                h5.light.col.s12 Requiring Attention
+                .col.s12
+                    ul.collapsible
+                        li(v-for="document in documents", :key="document._id")
+                            //-  @click="viewDocument(document._id)"
+                            .collapsible-header
+                                i.material-icons description
+                                | {{document.name}} #[br] {{document.format}} - {{moment(document.dateCreated).format('DD MMM YYYY | hh:mm')}}
+                            .collapsible-body
+
+                                .row
+                                    h6.light.col.s12 # {{ document._id }}
+
+                                    p.col.s12
+                                        a.btn(:href="document.fileUrl", target="_blank") View
+                                            i.material-icons.left visibility
+                                            
+                                    
+                                    h6.col.s8 Current status: {{ document.rejected ? "Rejected": document.done ? "Done" : "Pending"}}
+                                        
+
+                                    //- h6.col.s12 Applicant: {{ document.applicant.name }}
+                                    h6.col.s12 Current Passing Officer: {{ document.currentOfficer.name }}
+
+                                //- .row(v-if="passingOfficerLoggedIn")
+                                .row
+                                    p.col.s6.m3
+                                        button.btn.full-width.green( :disabled="document.done || document.approved || document.rejected") Approve
+                                            //- i.material-icons.left done
+                                            //- @click="approveDocument",
+                                    p.col.s6.m3
+                                        button.btn.full-width( :disabled="document.done || document.rejected || !document.approved") Forward
+                                            //- i.material-icons.left done
+                                            //- @click="forwardDocument",
+                                    p.col.s6.m3
+                                        button.btn.full-width.blue( :disabled="document.done || document.rejected || !document.approved") Done
+                                            //- i.material-icons.left done
+                                            //- @click="finalizeDocument",
+                                    p.col.s6.m3
+                                        button.btn.full-width.red( :disabled="document.done || document.approved || document.rejected") Reject
+                                            //- i.material-icons.left close
+                                            //- @click="rejectDocument",
+                                    
+                                .row    
+                                    h6.light.col.s12 History of Officers: 
+                                    .col.s12
+                                        ul.collection.history
+                                            li.collection-item.avatar(v-for="historyItem in document.history")
+                                                i.material-icons.circle.green(v-if="historyItem.action == 'Approved'") done
+                                                i.material-icons.circle.red(v-else-if="historyItem.action == 'Rejected'") close
+                                                i.material-icons.circle.yellow(v-else-if="historyItem.action == 'Forwared'") forward
+                                                i.material-icons.circle.blue(v-else="historyItem.action == 'Finalized'") done_all
+                                                span.title {{ historyItem.officer.name }}
+                                                p {{ historyItem.action }} - {{ moment(historyItem.date).format('DD MMM YYYY') }}
+                                                    
+
+                        
+                            
+
+block scripts
+    script(src="/js/init/documents.js")

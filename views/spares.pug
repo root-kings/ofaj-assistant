@@ -1,0 +1,195 @@
+extends components/layout.pug
+
+block styles
+    link(rel="stylesheet", href="/css/steps.css")
+
+block navtitle
+    a.teal-text.brand-logo.truncate(href="/") SPARE STATUS
+
+block content
+
+    #sparemodal.modal.modal-fixed-footer
+        .modal-content
+
+            .row
+                h4.col.s12 Create case
+                form#createspareform.col.s12
+                    .row
+                        .input-field.col.s12
+                            input#case.validate(type="text", name="case")
+                            label(for="case") Case
+
+                        .input-field.col.s12
+                            input#incharge.validate(type="text", name="incharge")
+                            label(for="incharge") Incharge
+
+                        .input-field.col.s6
+                            input#incharge-email.validate(type="email", name="incharge-email")
+                            label(for="incharge-email") Incharge Email
+
+                        .input-field.col.s6
+                            input#incharge-phone.validate(type="tel", name="incharge-phone")
+                            label(for="incharge-phone") Incharge Phone
+
+                        .input-field.col.s12
+                            input#supplier.validate(type="text", name="supplier")
+                            label(for="supplier") Supplier
+
+                        .input-field.col.s6
+                            input#supplier-email.validate(type="email", name="supplier-email")
+                            label(for="supplier-email") Supplier Email
+
+                        .input-field.col.s6
+                            input#supplier-phone.validate(type="tel", name="supplier-phone")
+                            label(for="supplier-phone") Supplier Phone  
+
+
+
+
+        .modal-footer
+            a.modal-close.waves-effect.waves-red.btn-flat.red-text(href="#!") Cancel
+            a.btn.modal-close.waves-effect.waves-light.green.white-text(href="javascript:createSpare();") Submit
+
+
+
+
+
+
+
+
+
+    .fixed-action-btn
+        // Modal Trigger
+        a.waves-effect.waves-light.btn-floating.btn-large.red.modal-trigger(href="#sparemodal")
+            i.material-icons.large add
+
+
+
+
+
+    #spares
+
+        
+
+
+        ul.collapsible.z-depth-0
+            li(v-for="(spare,spareindex) in spares")
+                .collapsible-header.z-depth-0
+                    p.full-width.no-margin {{spare.case}} 
+                        //- span.right(v-if='spare.currentstage') {{spare.currentstage}}
+                .collapsible-body.card.no-padding.z-depth-0
+                    .card-content
+                        .row
+                            //- p.col.s12.light # {{spare._id}}
+                            span.col.s12.card-title.grey-text.text-darken-4 {{spare.case}}
+
+                            
+                            .collection.col.s12 
+                                a.collection-item.step(v-if='spare.stages', v-for="(stage,stageindex) in spare.stages",:key="stageindex", v-bind:class="{'completed': (spare.stage >= stageindex) }" ,@click="spareStageDone(spareindex, stageindex)") {{stage.name}}
+                                    span.tiny expected: {{moment(stage.expecteddate).format('DD MMM \'YY')}} 
+                           
+
+                        .row
+                            h6.col.s12.light Incharge
+                            p.col.s12 {{spare.incharge.name}}
+                                br
+                                | Phone: {{spare.incharge.phone}}
+
+                        .row
+                            h6.col.s12.light User
+                            p.col.s12 {{spare.supplier.name}}
+                                br
+                                | Phone: {{spare.supplier.phone}}
+
+
+
+
+                    .card-action
+
+                        a.btn.btn-flat.btn-bordered.curvy(@click='spareEditTimerModal(spareindex)' data-target="sparestagemodal")
+                            i.material-icons access_time
+                        a.btn.btn-flat.btn-bordered.curvy(@click='spareEdit(spare._id)')
+                            i.material-icons edit
+                        a.btn.btn-flat.red.white-text.btn-bordered.curvy(@click='spareDelete(spare._id)')
+                            i.material-icons delete
+
+
+        //- .modal.modal-fixed-footer.bottom-sheet.no-autoinit(v-bind:id="'sparestagemodal'+spare._id")
+        .modal.bottom-sheet.no-autoinit#sparestagemodal
+            .modal-content
+
+                .row
+                    h4.col.s12 Update stages
+                    
+
+                //- .row(v-if="spare.stages")
+                .row
+                    table.col.s12
+                        thead
+                            tr
+                                th Name
+                                th Timeout
+                                th Expected
+                                th Done
+                                th Notes
+                        tbody
+                            tr(v-for='(stage,stageindex) in selectedSpare.stages', @click="selectStage(stageindex)")
+                                td {{stage.name}}
+                                td {{stage.timeout}}
+                                td {{moment(stage.dateexpected).format('YYYY-MM-DD')}}
+                                td {{moment(stage.datedone).format('YYYY-MM-DD')}}
+                                //- td {{stage.datedone == '' ? moment(stage.datedone).format('YYYY-MM-DD') : 'Pending'}}
+                                td {{stage.notes}}
+                            
+                //- .row(v-if="spare.stages", v-for='stage in spare.stages')
+                    
+                    
+                    //- p.light.col.s12 {{stage.name}}
+                    //- p.col.s3 Expected {{stage.dateexpected}}
+                    //- p.col.s3 Timeout {{stage.timeout}} days
+                    //- p.col.s3 Done: {{stage.datedone}}
+                    //- p.col.s3
+                    //-     i.material-icons.right edit
+                    //-     i.material-icons.right close
+
+
+                .row
+                    //- h4.col.s12 Stage
+                    form#createstageform.col.s12
+                        .row
+                            .input-field.col.s12
+                                input.validate(type="text", name="stagename", id="stagename", v-model="newstage.name")
+                                label(for="stagename") Name
+                            //- .input-field.col.s6
+                                input.datepicker.validate(type="text", name="dateexpected", id="dateexpected", v-model="newstage.dateexpected")
+                                label(for="dateexpected") Date Expected ('yyyy-mm-dd')
+                            .input-field.col.s6
+                                input.validate(type="text", name="timeout", id="timeout", v-model="newstage.timeout")
+                                label(for="timeout") Timeout (days)
+                            .input-field.col.s6
+                                input.datepicker.validate(type="text", name="datedone", id="datedone", v-model="newstage.datedone")
+                                label(for="datedone") Date Done ('yyyy-mm-dd')
+                            .input-field.col.s12
+                                input.validate(type="text", name="stagenotes", id="stagenotes", v-model="newstage.notes")
+                                label(for="stagenotes") Notes
+                            .col.s4
+                                .btn.full-width(@click="addStage()") Save
+                            .col.s4
+                                .btn.full-width.yellow(@click="clearStage()", :class="{disabled: selectedStage == -1}") Clear
+                            .col.s4
+                                .btn.full-width.blue(@click="deleteStage()", :class="{disabled: selectedStage == -1}") Delete
+
+                //- .row
+                    .col.s6
+                        .btn.full-width(@click="addStageModal(spareindex)") Add stage
+
+
+
+        //- .modal-footer
+            a.modal-close.waves-effect.waves-red.btn-flat.red-text(href="#!") Cancel
+            a.btn.modal-close.waves-effect.waves-light.green.white-text(@click="spareEditTimer(spare._id)") Submit
+
+
+
+block scripts
+    script(src="/js/init/spares.js")

@@ -1,0 +1,57 @@
+extends components/layout.pug
+
+block styles
+
+block content
+
+    section
+        .container
+            .row
+                h4.light.col.s12 Create document
+
+
+            .row
+                form#documentCreateForm.col.s12(v-on:submit.prevent="onSubmit")
+                    .row
+                        .input-field.col.s12
+                            input#name(type="text", name="name", v-model="name")
+                            label(for="name") Name
+
+                        //- .input-field.col.s12
+                        .col.s12
+                            label Officer
+
+                            select.browser-default(name="officer", v-model="selectedofficer", ref="officerSelect")
+                                option(value="", disabled, selected) Choose your option
+                                option(:value="officer._id",  v-for="officer in officers" :key="officer._id") {{officer.name}}
+
+                            //- select.browser-default.icons(name="officer", v-model="selectedofficer", ref="officerSelect")
+                                option(value="", disabled, selected) Choose your option
+                                option(:value="officer._id", data-icon="/images/office.jpg", v-for="officer in officers" ) {{officer.name}}
+
+                            //- label Officer
+                        
+                        p.col.s12
+                            label
+                                input#urgent.filled-in(type="checkbox", checked="checked", v-model="urgent")
+                                span Urgent
+
+                        .file-field.input-field.col.s12
+                            .btn
+                                span File
+                                input#file(type="file", v-on:change="onFileUpload()", ref="file")
+                            .file-path-wrapper
+                                input.file-path(type="text", placeholder="Upload file")
+
+
+
+                    .row
+                        .col.s12.m6.offset-m3
+                            button.full-width.btn.waves-effect.waves-light(type="submit") Submit
+
+
+
+
+
+block scripts
+    script(src="/js/init/documentCreate.js")

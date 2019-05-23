@@ -1,0 +1,59 @@
+extends components/layout.pug
+
+block styles
+
+block content
+
+    section#document
+        .container
+            .row
+                h4.light.col.s12 Document Details
+                
+                h5.col.s12 {{ name }}
+                    i.material-icons.red-text.right(v-if="urgent") error_outline
+                    
+                h6.light.col.s12 # {{ documentId }}
+
+                p.col.s12
+                    a.btn(:href="fileUrl", target="_blank") View
+                        i.material-icons.left visibility
+                        
+                
+                h6.col.s8 Current status: {{ rejected ? "Rejected": done ? "Done" : "Pending"}}
+                    
+
+                h6.col.s12 Applicant: {{ applicant.name }}
+                h6.col.s12 Current Passing Officer: {{ currentOfficer.name }}
+
+            .row(v-if="passingOfficerLoggedIn")
+                p.col.s6.m3
+                    button.btn.full-width.green(@click="approveDocument", :disabled="done || approved || rejected") Approve
+                        //- i.material-icons.left done
+                p.col.s6.m3
+                    button.btn.full-width(@click="forwardDocument", :disabled="done || rejected || !approved") Forward
+                        //- i.material-icons.left done
+                p.col.s6.m3
+                    button.btn.full-width.blue(@click="finalizeDocument", :disabled="done || rejected || !approved") Done
+                        //- i.material-icons.left done
+                p.col.s6.m3
+                    button.btn.full-width.red(@click="rejectDocument", :disabled="done || approved || rejected") Reject
+                        //- i.material-icons.left close
+                
+            .row    
+                h6.light.col.s12 History of Officers: 
+                .col.s12
+                    ul.collection.history
+                        li.collection-item.avatar(v-for="historyItem in history")
+                            i.material-icons.circle.green(v-if="historyItem.action == 'Approved'") done
+                            i.material-icons.circle.red(v-else-if="historyItem.action == 'Rejected'") close
+                            i.material-icons.circle.yellow(v-else-if="historyItem.action == 'Forwared'") forward
+                            i.material-icons.circle.blue(v-else="historyItem.action == 'Finalized'") done_all
+                            span.title {{ historyItem.officer.name }}
+                            p {{ historyItem.action }} - {{ moment(historyItem.date).format('DD MMM YYYY') }}
+                                
+
+                
+                
+
+block scripts
+    script(src="/js/init/document.js")

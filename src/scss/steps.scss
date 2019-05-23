@@ -1,0 +1,31 @@
+a.collection-item.step {
+    // display: block;
+    background: #e8f5e9;
+    border-bottom: 1px solid white;
+    overflow: hidden;
+    // box-sizing: content-box;
+    color: #666;
+    // max-width: 50vw;
+}
+
+a.collection-item.step:first-of-type {
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+
+a.collection-item.step:last-of-type {
+    border-bottom: none;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+
+a.collection-item.step.completed {
+	background: #4caf50;
+	color: #fff;
+}
+
+a.collection-item:not(.active).step:hover {
+	background: #388e3c;
+	color: #fff;
+}

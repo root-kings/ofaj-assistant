@@ -1,0 +1,41 @@
+html(lang="en")
+    head
+        meta(charset="UTF-8")
+        meta(name="viewport", content="width=device-width, initial-scale=1.0")
+        meta(http-equiv="X-UA-Compatible", content="ie=edge")
+        title OFAJ Assistant
+        base(href="/")
+        include components/styles.pug
+
+
+
+    body
+        include components/waitoverlay.pug
+
+        main.valign-wrapper.sky-blue
+            .row
+
+                .col.offset-s1.s10.z-depth-5.card-panel.rounded
+
+                    .container
+                        form#loginform.row
+                            .col.s12
+                                h4.header.light.center OFAJ Assistant
+                                h5.center Login
+                            .input-field.col.s12
+                                i.material-icons.prefix.blue-text account_circle
+                                input#username.validate(name='username' type='text')
+                                label(for='username') Username
+                            .input-field.col.s12
+                                i.material-icons.prefix.blue-text lock_circle
+                                input#password.validate(name='password' type='password')
+                                label(for='password') Password
+                            .col.s12.center
+                                a.btn.btn-large.waves-effect.waves-light.blue.curvy(href='javascript: doLogin()') Login
+                                
+                            .col.s12.center
+                                a.btn.btn-large.btn-flat.waves-effect.waves-light(href='/register') register
+                                
+
+        include components/scripts.pug
+            script(src="/js/init/login.js")
