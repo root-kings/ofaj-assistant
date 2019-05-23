@@ -121,7 +121,9 @@ const documentController = require('./controllers/documentController')
 
 router.get('/api/documents', documentController.documents_get)
 
-router.get('/api/documents/user/:userid', documentController.documents_user_get)
+router.get('/api/documents/user/:userid/to', documentController.documents_user_to_get)
+
+router.get('/api/documents/user/:userid/from', documentController.documents_user_from_get)
 
 router.get('/api/document/sign-s3', documentController.document_sign_s3_get)
 

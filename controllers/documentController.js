@@ -30,8 +30,22 @@ exports.documents_get = (req, res) => {
 	})
 }
 
-exports.documents_user_get = (req, res) => {
-	Document.find({currentOfficer: req.params.userid})
+exports.documents_user_to_get = (req, res) => {
+	Document.find({currentOfficer: req.params.userid, done: false})
+		.populate('applicant')
+		.populate('currentOfficer')
+		.populate('history.officer')
+		.exec((err, result) => {
+			if (err) return res.status(500).send(err)
+
+			if (result) return res.send(result)
+
+			return res.send(false)
+		})
+}
+
+exports.documents_user_from_get = (req, res) => {
+	Document.find({applicant: req.params.userid})
 		.populate('applicant')
 		.populate('currentOfficer')
 		.populate('history.officer')

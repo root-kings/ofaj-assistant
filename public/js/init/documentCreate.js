@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	documentFormVue = new Vue({
 		el: '#documentCreateForm',
 		data: {
-			user: localStorage.getItem('loggedUser'),
+			user: localStorage.getItem('loggeduser'),
 			name: '',
 			selectedofficer: '',
 			file: '',

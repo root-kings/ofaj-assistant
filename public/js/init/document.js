@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', function() {
 						currentVue.applicant = document.applicant
 						currentVue.currentOfficer = document.currentOfficer
 						currentVue.history = document.history
-						currentVue.passingOfficerLoggedIn = localStorage.getItem('loggedUser') == currentVue.currentOfficer._id
+						currentVue.passingOfficerLoggedIn = localStorage.getItem('loggeduser') == currentVue.currentOfficer._id
 					})
 					.catch(function(error) {
 						M.toast({ html: 'Error occured! Check console for details.' })

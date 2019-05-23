@@ -24,7 +24,7 @@ function doLogin() {
 		.then(function(result) {
 			if (result) {
 				console.log(result)
-				localStorage.setItem('loggeduser', JSON.stringify(result))
+				localStorage.setItem('loggeduser', result._id)
 				window.location.href = location.hostname == '' ? 'file:///android_asset/www/calibration.html' : '/calibration'
 			}
 			hideWait()
