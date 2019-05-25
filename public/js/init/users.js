@@ -10,11 +10,20 @@ document.addEventListener('DOMContentLoaded', function() {
 			usersview = new Vue({
 				el: '#users',
 				data: {
-					users: listusers
+					users: listusers,
+					selecteduser: {
+						name: '',
+						phone: '',
+						email: '',
+						username: '',
+						active: true,
+						_id: '',
+					}
 				},
 
 				mounted: function() {
 					hideWait()
+					M.AutoInit()
 				}
 			})
 		})
@@ -64,4 +73,21 @@ function deleteUser(id) {
 				hideWait()
 			})
 	}
+}
+
+function viewUser(id) {
+	fetch(hostaddress + '/api/user/' + id, {
+		method: 'GET',
+		mode: 'cors'
+	})
+		.then(function(response) {
+			return response.json()
+		})
+		.then(function(result) {
+			if (result) {
+				usersview.selecteduser = result
+				M.Modal.getInstance(document.querySelector('#userModal')).open()
+			}
+			// hideWait()
+		})
 }
