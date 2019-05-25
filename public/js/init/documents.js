@@ -28,8 +28,10 @@ document.addEventListener('DOMContentLoaded', function() {
 						return response.json()
 					})
 					.then(function(documents) {
-						documents.forEach(document => {
+						documents.forEach((document, docIndex) => {
 							if (document.history.length > 0) document.approved = document.history[document.history.length - 1].action == 'Approved'
+
+							if (document.rejected) documents.splice(docIndex, 1)
 						})
 
 						currentVue.attendingdocuments = documents
@@ -187,7 +189,7 @@ document.addEventListener('DOMContentLoaded', function() {
 					headers: {
 						'Content-Type': 'application/json'
 					},
-					body: JSON.stringify({ officer: localStorage.getItem('loggeduser') , newOfficer: currentVue.forwardOfficer })
+					body: JSON.stringify({ officer: localStorage.getItem('loggeduser'), newOfficer: currentVue.forwardOfficer })
 				})
 					.then(function(response) {
 						if (response.status == 200) {
