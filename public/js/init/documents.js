@@ -15,7 +15,9 @@ document.addEventListener('DOMContentLoaded', function() {
 			currentOfficer: '',
 			passingOfficerLoggedIn: false,
 			file: '',
-			officers: []
+			officers: [],
+			forwardOfficer: '',
+			selectedDocument: ''
 		},
 
 		methods: {
@@ -115,6 +117,11 @@ document.addEventListener('DOMContentLoaded', function() {
 				}
 			},
 
+			forwardDocumentModalOpen: function(documentId) {
+				this.selectedDocument = documentId
+				M.Modal.getInstance(document.querySelector('#documentForwardModal')).open()
+			},
+
 			approveDocument: function(documentId) {
 				let currentVue = this
 				showWait()
@@ -171,10 +178,39 @@ document.addEventListener('DOMContentLoaded', function() {
 					})
 			},
 
-			forwardDocument: function(documentId) {},
+			forwardDocument: function() {
+				let currentVue = this
+
+				showWait()
+				fetch(`/api/document/${currentVue.selectedDocument}/forward`, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify({ officer: localStorage.getItem('loggeduser') , newOfficer: currentVue.forwardOfficer })
+				})
+					.then(function(response) {
+						if (response.status == 200) {
+							M.toast({ html: 'Document forwarded!' })
+							// currentVue.done = true
+						} else {
+							M.toast({ html: 'Error occured! Check console for details.' })
+						}
+					})
+					.catch(function(error) {
+						M.toast({ html: 'Error occured! Check console for details.' })
+						console.error(error)
+					})
+					.then(function() {
+						currentVue.poplateDocuments()
+						M.Modal.getInstance(document.querySelector('#documentForwardModal')).close()
+						hideWait()
+					})
+			},
 
 			onSubmit: function() {
 				showWait()
+				let currentVue = this
 
 				let newDocument = {
 					fileUrl: this.fileUrl,
@@ -200,6 +236,7 @@ document.addEventListener('DOMContentLoaded', function() {
 						console.error(error)
 					})
 					.then(function() {
+						currentVue.poplateDocuments()
 						hideWait()
 					})
 			},

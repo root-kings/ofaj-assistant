@@ -51,7 +51,7 @@ block content
                                             //- i.material-icons.left done
                                             //- @click="approveDocument",
                                     p.col.s6.m3
-                                        button.btn.full-width( :disabled="document.done || document.rejected || !document.approved", @click="forwardDocument(document._id)" ) Forward
+                                        a.btn.full-width( :disabled="document.done || document.rejected || !document.approved", @click="forwardDocumentModalOpen(document._id)" ) Forward
                                             //- i.material-icons.left done
                                             //- @click="forwardDocument",
                                     p.col.s6.m3
@@ -112,7 +112,7 @@ block content
                                             li.collection-item.avatar(v-for="historyItem in document.history")
                                                 i.material-icons.circle.green(v-if="historyItem.action == 'Approved'") done
                                                 i.material-icons.circle.red(v-else-if="historyItem.action == 'Rejected'") close
-                                                i.material-icons.circle.yellow(v-else-if="historyItem.action == 'Forwared'") forward
+                                                i.material-icons.circle.yellow.darken-2(v-else-if="historyItem.action == 'Forwarded'") forward
                                                 i.material-icons.circle.blue(v-else="historyItem.action == 'Finalized'") done_all
                                                 span.title {{ historyItem.officer.name }}
                                                 p {{ historyItem.action }} - {{ moment(historyItem.date).format('DD MMM YYYY') }}
@@ -126,7 +126,16 @@ block content
 
 
 
-
+        #documentForwardModal.modal
+            .modal-content
+                .row
+                    .col.s12 Select officer
+                    .col.s12
+                        select.browser-default(name="forwardOfficer", v-model="forwardOfficer", ref="officerSelect")
+                            option(value="", disabled, selected) Choose your option
+                            option(:value="officer._id",  v-for="officer in officers" :key="officer._id") {{officer.name}}
+                    p.col.s6.m3
+                        a.btn.full-width(@click="forwardDocument()" ) Forward
 
 
 

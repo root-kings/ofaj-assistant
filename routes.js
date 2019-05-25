@@ -142,6 +142,8 @@ router.post('/api/document/:id/approve', documentController.document_approve_pos
 
 router.post('/api/document/:id/finalize', documentController.document_finalize_post)
 
+router.post('/api/document/:id/forward', documentController.document_forward_post)
+
 router.post('/api/document/:id/edit', documentController.document_update_post)
 
 

@@ -31,7 +31,7 @@ exports.documents_get = (req, res) => {
 }
 
 exports.documents_user_to_get = (req, res) => {
-	Document.find({currentOfficer: req.params.userid, done: false})
+	Document.find({ currentOfficer: req.params.userid, done: false })
 		.populate('applicant')
 		.populate('currentOfficer')
 		.populate('history.officer')
@@ -45,7 +45,7 @@ exports.documents_user_to_get = (req, res) => {
 }
 
 exports.documents_user_from_get = (req, res) => {
-	Document.find({applicant: req.params.userid})
+	Document.find({ applicant: req.params.userid })
 		.populate('applicant')
 		.populate('currentOfficer')
 		.populate('history.officer')
@@ -118,6 +118,37 @@ exports.document_update_post = (req, res) => {
 
 		return res.send(false)
 	})
+}
+
+exports.document_forward_post = (req, res) => {
+	let historyItem = {
+		officer: req.body.officer,
+		date: new moment(),
+		action: `Forwarded`
+	}
+
+	Document.findOneAndUpdate(
+		{
+			_id: req.params.id
+		},
+		{
+			currentOfficer: req.body.newOfficer,
+			$push: {
+				history: historyItem
+			}
+		},
+		{
+			safe: true,
+			upsert: true
+		}
+	).exec((err, result) => {
+		if (err) return res.status(500).send(err)
+
+		if (result) return res.send(result)
+
+		return res.send(false)
+	})
+
 }
 
 exports.document_reject_post = (req, res) => {
