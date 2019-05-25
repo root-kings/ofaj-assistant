@@ -114,7 +114,7 @@ block content
             li(v-for="machine in machines")
                 .collapsible-header.z-depth-0(v-bind:class="{'burning-orange white-text': machine.soon }")
                     p.full-width.no-margin {{machine.name}} 
-                        span.right Next: {{machine.checkup.next}} | {{machine.soondays}} days left
+                        span.right Next: {{machine.checkup.next}} | {{machine.soondays < 0 ? -(machine.soondays) + ' days over due' : machine.soondays + ' days left'}} 
                 .collapsible-body.card.no-padding.z-depth-0
                     .card-content
                         .row.no-margin
