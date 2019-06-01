@@ -4,6 +4,8 @@ const cors = require('cors')
 const bodyParser = require('body-parser')
 const logger = require('morgan')
 
+require('dotenv').config()
+
 const PORT = process.env.PORT
 const DBPORT = process.env.MONGODB_URI
 
