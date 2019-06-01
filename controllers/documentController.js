@@ -224,3 +224,22 @@ exports.document_sign_s3_get = (req, res) => {
 		res.send(JSON.stringify(returnData))
 	})
 }
+
+exports.get_OTP_Request = function(req,res) {
+	
+	let OTP = 123456
+
+	const msg91 = require('msg91')('247111AI4S9E1P5bea6b3a', 'OFAJMA', '4')
+
+	let mobileNo = '+917767060939'
+	
+	
+	let message = `Enter OTP ${OTP} for authentication.`
+
+	msg91.send(mobileNo, message, function(err, response) {
+		if (err) console.log(err)
+		console.log('Sent message.')
+		res.send({OTP})
+	})
+	
+}

@@ -94,7 +94,6 @@ router.post('/api/spare/:id/stage', spareController.spare_stage_update_post)
 
 router.post('/api/spare/:id/stage/done', spareController.spare_stage_done_update_post)
 
-
 // User -----
 
 const userController = require('./controllers/userController')
