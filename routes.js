@@ -146,5 +146,19 @@ router.post('/api/document/:id/forward', documentController.document_forward_pos
 
 router.post('/api/document/:id/edit', documentController.document_update_post)
 
+const multer = require('multer')
+const storage = multer.diskStorage({
+	destination: (req, file, cb) => {
+		cb(null, 'public/documents')
+	},
+	filename: (req, file, cb) => {
+		cb(null, file.fileName + '-' + Date.now())
+	}
+})
+const upload = multer({ storage: storage })
+
+router.post('/api/document/upload', upload.single('image'), (req, res, next) => {
+	res.json({ file: 'public/documents/' + req.file.filename })
+})
 
 module.exports = router
