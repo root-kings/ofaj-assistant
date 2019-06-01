@@ -85,7 +85,10 @@ block content
                         li(v-for="document in selfdocuments", :key="document._id")
                             //-  @click="viewDocument(document._id)"
                             .collapsible-header
-                                i.material-icons description
+                                //- i.material-icons.circle.red description
+                                i.material-icons.red-text.text-darken-2(v-if="document.rejected") close
+                                i.material-icons.green-text.text-darken-2(v-else-if="document.done") done_all
+                                i.material-icons(v-else) access_time
                                 | {{document.name}} #[br] {{document.format}} - {{moment(document.dateCreated).format('DD MMM YYYY | hh:mm')}}
                             .collapsible-body
 

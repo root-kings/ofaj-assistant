@@ -24,17 +24,17 @@ exports.users_get = (req, res) => {
 }
 
 exports.user_create_post = (req, res) => {
-	// let newuser = new User(req.body.user)
-	// console.log(newuser)
+	let newuser = new User(req.body.user)
+	console.log(newuser)
 
-	// newuser.save((err, result) => {
-	// 	if (err) return res.status(500).send(err)
+	newuser.save((err, result) => {
+		if (err) return res.status(500).send(err)
 
-	// 	return res.send(result)
-	// })
+		return res.send(result)
+	})
 
-	console.log(req.body)
-	res.send(false)
+	// console.log(req.body)
+	// res.send(false)
 }
 
 exports.users_delete_all_get = (req, res) => {
