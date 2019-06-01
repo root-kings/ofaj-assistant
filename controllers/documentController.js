@@ -1,9 +1,13 @@
 const Document = require('../models/document')
+const User = require('../models/user')
 
 const moment = require('moment')
 const aws = require('aws-sdk')
 const S3_BUCKET = process.env.S3_BUCKET
 aws.config.region = process.env.AWS_REGION
+const msg91 = require('msg91')('247111AI4S9E1P5bea6b3a', 'OFAJMA', '4')
+
+const util = require('./util')
 
 // API -----
 exports.document_detail_get = (req, res) => {
@@ -148,7 +152,6 @@ exports.document_forward_post = (req, res) => {
 
 		return res.send(false)
 	})
-
 }
 
 exports.document_reject_post = (req, res) => {
@@ -225,21 +228,31 @@ exports.document_sign_s3_get = (req, res) => {
 	})
 }
 
-exports.get_OTP_Request = function(req,res) {
-	
-	let OTP = 123456
+exports.post_OTP_Request = function(req, res) {
+	User.findById(req.body.officer).exec((err, result) => {
+		if (err) return res.status(500).send(err)
 
-	const msg91 = require('msg91')('247111AI4S9E1P5bea6b3a', 'OFAJMA', '4')
+		if (result) {
+			let mobileNo = result.phone
 
-	let mobileNo = '+917767060939'
-	
-	
-	let message = `Enter OTP ${OTP} for authentication.`
+			let OTP = util.generateOTP(6)
+			let OTPHash = util.sha256(JSON.stringify(OTP))
 
-	msg91.send(mobileNo, message, function(err, response) {
-		if (err) console.log(err)
-		console.log('Sent message.')
-		res.send({OTP})
+			if (mobileNo.length != 13) {
+				mobileNo = '+91' + mobileNo
+			}
+
+			let message = `Enter OTP ${OTP} for authentication.`
+
+			if (mobileNo.length == 13) {
+				msg91.send(mobileNo, message, function(err, response) {
+					if (err) console.log(err)
+					// console.log(`Sent OTP ${OTP} to ${mobileNo}.`)
+					return res.send({ OTPHash })
+				})
+			} else {
+				return res.status(500).send({ error: `Invalid mobile number ${mobileNo}` })
+			}
+		}
 	})
-	
 }
