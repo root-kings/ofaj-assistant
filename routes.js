@@ -126,6 +126,8 @@ router.get('/api/documents/user/:userid/from', documentController.documents_user
 
 router.get('/api/document/sign-s3', documentController.document_sign_s3_get)
 
+router.post('/api/document/getOTP', documentController.post_OTP_Request)
+
 router.get('/api/documents/deleteall', documentController.documents_delete_all_get)
 
 router.post('/api/document/create', documentController.document_create_post)
