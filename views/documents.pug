@@ -142,6 +142,16 @@ block content
 
 
 
+        #OTPModal.modal
+            .modal-content
+                .row
+                    //- .col.s12 Enter OTP
+                    .input-field.col.s12
+                        input#OTP(type="text", name="OTP", v-model="OTP")
+                        label(for="OTP") Enter OTP
+                    p.col.s6.m3
+                        a.btn.full-width(@click="validateOTP()" ) Authenticate
+
 
 
 
