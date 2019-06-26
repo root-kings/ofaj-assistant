@@ -1,6 +1,6 @@
 extends components/layout.pug
 
-block navtitle
+//- block navtitle
     a.teal-text.brand-logo.truncate(href="/") DOCUMENTS
 
 block styles
@@ -22,19 +22,19 @@ block content
             .row
                 h5.light.col.s12 Requiring Attention
                 .col.s12
-                    ul.collapsible
-                        li(v-for="document in attendingdocuments", :key="document._id")
+                    ul.collapsible.no-border.z-depth-0
+                        li.tilted.z-depth-5(v-for="document in attendingdocuments", :key="document._id")
                             //-  @click="viewDocument(document._id)"
                             .collapsible-header
                                 i.material-icons description
                                 | {{document.name}} #[br] {{document.format}} - {{moment(document.dateCreated).format('DD MMM YYYY | hh:mm')}}
-                            .collapsible-body
+                            .collapsible-body.grey.lighten-3
 
                                 .row
                                     h6.light.col.s12 # {{ document._id }}
 
                                     p.col.s12
-                                        a.btn(:href="document.fileUrl", target="_blank") View
+                                        a.btn.purple(:href="document.fileUrl", target="_blank") View
                                             i.material-icons.left visibility
 
 
@@ -51,7 +51,7 @@ block content
                                             //- i.material-icons.left done
                                             //- @click="approveDocument",
                                     p.col.s6.m3
-                                        a.btn.full-width( :disabled="document.done || document.rejected || !document.approved", @click="forwardDocumentModalOpen(document._id)" ) Forward
+                                        a.btn.full-width.orange( :disabled="document.done || document.rejected || !document.approved", @click="forwardDocumentModalOpen(document._id)" ) Forward
                                             //- i.material-icons.left done
                                             //- @click="forwardDocument",
                                     p.col.s6.m3
@@ -81,8 +81,8 @@ block content
             .row
                 h5.light.col.s12 Your Applications
                 .col.s12
-                    ul.collapsible
-                        li(v-for="document in selfdocuments", :key="document._id")
+                    ul.collapsible.no-border.z-depth-0
+                        li.tilted.z-depth-5(v-for="document in selfdocuments", :key="document._id")
                             //-  @click="viewDocument(document._id)"
                             .collapsible-header
                                 //- i.material-icons.circle.red description
@@ -90,7 +90,7 @@ block content
                                 i.material-icons.green-text.text-darken-2(v-else-if="document.done") done_all
                                 i.material-icons(v-else) access_time
                                 | {{document.name}} #[br] {{document.format}} - {{moment(document.dateCreated).format('DD MMM YYYY | hh:mm')}}
-                            .collapsible-body
+                            .collapsible-body.grey.lighten-3
 
                                 .row
                                     h6.light.col.s12 # {{ document._id }}

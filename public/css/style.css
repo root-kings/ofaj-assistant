@@ -199,3 +199,46 @@ span.tiny {
 	/* Add a pointer on hover */
 }
 
+.wavy-bg {
+	background: url('/images/backgrounds/wave-hero-background.svg');
+	background-attachment: fixed;
+	background-repeat: no-repeat;
+	background-size: 100% auto;
+}
+
+.wavy-blue-bg {
+	background: url('/images/backgrounds/homepage-wave-bg.svg');
+	background-attachment: fixed;
+	background-repeat: no-repeat;
+	background-size: 100% auto;
+}
+
+.blue-bg {
+	background: #2bc0e4; /* fallback for old browsers */
+	background: -webkit-linear-gradient(to botom, #eaecc6, #2bc0e4); /* Chrome 10-25, Safari 5.1-6 */
+	background: linear-gradient(to botom, #eaecc6, #2bc0e4); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+}
+
+.bordered {
+	border-style: solid;
+	border-width: 1px;
+}
+
+.bordered.red-border {
+	border-color: #f44336;
+}
+
+.bordered.blue-border {
+	border-color: #2196f3;
+}
+.tilted {
+	transform: perspective(400px) rotateX(-3deg);
+	transition: transform 0.5s linear;
+}
+
+.tilted.active {
+	transform: perspective(400px) rotateX(0deg);
+}
+.no-border {
+	border: none;
+}

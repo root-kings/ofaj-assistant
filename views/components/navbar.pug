@@ -1,37 +1,37 @@
 .navbar-fixed
-    nav.white.z-depth-0
+    nav.transparent.z-depth-0
         .nav-wrapper
-            a.teal-text(data-target="slide-out" href="#").sidenav-trigger
+            a.white-text(data-target="slide-out" href="#").sidenav-trigger
                 i.material-icons menu
             block navtitle
-                a.teal-text.brand-logo.truncate(href="/") Dashboard
+                a.white-text.brand-logo.truncate(href="/") Dashboard
 
             ul.right.hide-on-med-and-down
                 li
-                    a.teal-text(href="/") Home
+                    a.white-text(href="/") Home
 
                 //- li
-                    a.teal-text(href="#!") Settings
+                    a.white-text(href="#!") Settings
 
                 li
-                    a.teal-text(href="/calibration") Calibration
+                    a.white-text(href="/calibration") Calibration
 
 
                 li
-                    a.teal-text(href="/spares") Spares
+                    a.white-text(href="/spares") Spares
 
                 li
-                    a.teal-text(href="/documents") Documents
+                    a.white-text(href="/documents") Documents
 
                 //- if user.username == 'tusarpandey'
                 li
-                    a.teal-text(href="/users") Users
+                    a.white-text(href="/users") Users
 
                 li
-                    a.teal-text(href="/about") About
+                    a.white-text(href="/about") About
 
                 li
-                    a.teal-text(href="javascript:logout()") Logout
+                    a.white-text(href="javascript:logout()") Logout
 
 
 ul#slide-out.sidenav
