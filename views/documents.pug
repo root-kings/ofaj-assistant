@@ -107,7 +107,7 @@ block content
                                     h6.col.s12 Current Passing Officer: {{ document.currentOfficer.name }}
 
                                 //- .row(v-if="passingOfficerLoggedIn")
-                                
+
                                 .row    
                                     h6.light.col.s12 History of Officers: 
                                     .col.s12
@@ -182,6 +182,16 @@ block content
                                     option(value="", disabled, selected) Choose your option
                                     option(:value="officer._id",  v-for="officer in officers" :key="officer._id") {{officer.name}}
 
+                            .col.s12
+                                label Format
+                                select.browser-default(name="format", v-model="selectedformat", ref="formatSelect")
+                                    //- option(value="", disabled, selected) Choose your option
+                                    option(value="Case Purchase", selected) Case Purchase
+                                    option(value="Tender Enquiry") Tender Enquiry
+                                    option(value="GFR") GFR
+                                    option(value="Noting") Noting
+                                    option(value="Misceallaneous") Misceallaneous
+
                                 //- select.browser-default.icons(name="officer", v-model="selectedofficer", ref="officerSelect")
                                     option(value="", disabled, selected) Choose your option
                                     option(:value="officer._id", data-icon="/images/office.jpg", v-for="officer in officers" ) {{officer.name}}
@@ -202,7 +212,7 @@ block content
 
 
 
-                        
+
                                 //- button.full-width.btn.waves-effect.waves-light(type="submit") Submit
 
 

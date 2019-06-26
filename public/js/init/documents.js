@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			attendingdocuments: [],
 			selfdocuments: [],
 			selectedofficer: '',
+			selectedformat: 'Case Purchase',
 			documentId: '',
 			name: '',
 			fileUrl: '',
@@ -279,6 +280,7 @@ document.addEventListener('DOMContentLoaded', function() {
 					applicant: this.applicant,
 					name: this.name,
 					officer: this.selectedofficer,
+					format: this.selectedformat,
 					urgent: this.urgent
 				}
 

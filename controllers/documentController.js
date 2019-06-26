@@ -71,6 +71,7 @@ exports.document_create_post = (req, res) => {
 		urgent: req.body.urgent,
 		applicant: req.body.applicant,
 		currentOfficer: req.body.officer,
+		format: req.body.format,
 		fileUrl: req.body.fileUrl
 	})
 
