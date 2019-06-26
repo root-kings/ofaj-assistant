@@ -129,7 +129,8 @@ exports.document_forward_post = (req, res) => {
 	let historyItem = {
 		officer: req.body.officer,
 		date: new moment(),
-		action: `Forwarded`
+		action: `Forwarded`,
+		comment: req.body.comment
 	}
 
 	Document.findOneAndUpdate(
@@ -159,7 +160,8 @@ exports.document_reject_post = (req, res) => {
 	let historyItem = {
 		officer: req.body.officer,
 		date: new moment(),
-		action: 'Rejected'
+		action: 'Rejected',
+		comment: req.body.comment
 	}
 
 	Document.findOneAndUpdate({ _id: req.params.id }, { rejected: true, $push: { history: historyItem } }, { safe: true, upsert: true }).exec((err, result) => {
@@ -175,7 +177,8 @@ exports.document_approve_post = (req, res) => {
 	let historyItem = {
 		officer: req.body.officer,
 		date: new moment(),
-		action: 'Approved'
+		action: 'Approved',
+		comment: req.body.comment
 	}
 
 	Document.findOneAndUpdate({ _id: req.params.id }, { approved: true, $push: { history: historyItem } }, { safe: true, upsert: true }).exec((err, result) => {
@@ -191,7 +194,8 @@ exports.document_finalize_post = (req, res) => {
 	let historyItem = {
 		officer: req.body.officer,
 		date: new moment(),
-		action: 'Finalized'
+		action: 'Finalized',
+		comment: req.body.comment
 	}
 
 	Document.findOneAndUpdate({ _id: req.params.id }, { done: true, $push: { history: historyItem } }, { safe: true, upsert: true }).exec((err, result) => {
@@ -242,6 +246,9 @@ exports.post_OTP_Request = function(req, res) {
 			if (mobileNo.length != 13) {
 				mobileNo = '+91' + mobileNo
 			}
+
+			// console.log('OTP: ' + OTP)
+			// return res.send({ OTPHash })
 
 			let message = `Enter OTP ${OTP} for authentication.`
 

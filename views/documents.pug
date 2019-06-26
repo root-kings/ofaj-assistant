@@ -44,22 +44,29 @@ block content
                                     h6.col.s12 Applicant: {{ document.applicant.name }}
                                     h6.col.s12 Current Passing Officer: {{ document.currentOfficer.name }}
 
-                                //- .row(v-if="passingOfficerLoggedIn")
+                                
                                 .row
+                                    .input-field.col.s12.m6
+                                        textarea.materialize-textarea(:id="'comment'+document._id", v-model="document.comment")
+                                        label(for="'comment'+document._id") Comment
+                                        
+
+                                
+                                
                                     p.col.s6.m3
-                                        button.btn.full-width.green( :disabled="document.done || document.approved || document.rejected", @click="approveDocument(document._id)" ) Approve
+                                        button.btn.full-width.green( :disabled="document.done || document.approved || document.rejected", @click="approveDocument(document)" ) Approve
                                             //- i.material-icons.left done
                                             //- @click="approveDocument",
                                     p.col.s6.m3
-                                        a.btn.full-width.orange( :disabled="document.done || document.rejected || !document.approved", @click="forwardDocumentModalOpen(document._id)" ) Forward
+                                        a.btn.full-width.orange( :disabled="document.done || document.rejected || !document.approved", @click="forwardDocumentModalOpen(document)" ) Forward
                                             //- i.material-icons.left done
                                             //- @click="forwardDocument",
                                     p.col.s6.m3
-                                        button.btn.full-width.blue( :disabled="document.done || document.rejected || !document.approved", @click="finalizeDocument(document._id)" ) Done
+                                        button.btn.full-width.blue( :disabled="document.done || document.rejected || !document.approved", @click="finalizeDocument(document)" ) Done
                                             //- i.material-icons.left done
                                             //- @click="finalizeDocument",
                                     p.col.s6.m3
-                                        button.btn.full-width.red( :disabled="document.done || document.approved || document.rejected", @click="rejectDocument(document._id)" ) Reject
+                                        button.btn.full-width.red( :disabled="document.done || document.approved || document.rejected", @click="rejectDocument(document)" ) Reject
                                             //- i.material-icons.left close
                                             //- @click="rejectDocument",
 
@@ -74,6 +81,7 @@ block content
                                                 i.material-icons.circle.blue(v-else="historyItem.action == 'Finalized'") done_all
                                                 span.title {{ historyItem.officer.name }}
                                                 p {{ historyItem.action }} - {{ moment(historyItem.date).format('DD MMM YYYY') }}
+                                                p {{ historyItem.comment }}
 
 
 
@@ -119,6 +127,7 @@ block content
                                                 i.material-icons.circle.blue(v-else="historyItem.action == 'Finalized'") done_all
                                                 span.title {{ historyItem.officer.name }}
                                                 p {{ historyItem.action }} - {{ moment(historyItem.date).format('DD MMM YYYY') }}
+                                                p {{ historyItem.comment }}
 
 
 

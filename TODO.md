@@ -1,6 +1,6 @@
 # Todo
 
-* [ ] remark while approval
+* [x] remark while approval
 
 * [ ] query information without rejection
 
@@ -8,7 +8,7 @@
 
 * [x] OTP
 
-* [ ] QR Authentication
+* [-] QR Authentication
 
 * [x] Document format
 

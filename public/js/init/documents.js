@@ -35,6 +35,7 @@ document.addEventListener('DOMContentLoaded', function() {
 							if (document.history.length > 0) document.approved = document.history[document.history.length - 1].action == 'Approved'
 
 							if (document.rejected) documents.splice(docIndex, 1)
+							document.comment = ''
 						})
 
 						currentVue.attendingdocuments = documents
@@ -92,7 +93,7 @@ document.addEventListener('DOMContentLoaded', function() {
 					})
 			},
 
-			rejectDocument: function(documentId) {
+			rejectDocument: function(document) {
 				if (sessionGet('OTPAuthenticated') == null) {
 					M.toast({ html: 'You need to authenticate session.' })
 					this.sessionSetModal()
@@ -102,16 +103,17 @@ document.addEventListener('DOMContentLoaded', function() {
 				if (confirm('Reject this document?')) {
 					let currentVue = this
 					showWait()
-					fetch(`/api/document/${documentId}/reject`, {
+					fetch(`/api/document/${document._id}/reject`, {
 						method: 'POST',
 						headers: {
 							'Content-Type': 'application/json'
 						},
-						body: JSON.stringify({ officer: localStorage.getItem('loggeduser') })
+						body: JSON.stringify({ comment: document.comment, officer: localStorage.getItem('loggeduser') })
 					})
 						.then(function(response) {
 							if (response.status == 200) {
 								M.toast({ html: 'Document rejected!' })
+								document.comment = ''
 								// currentVue.rejected = true
 							} else {
 								M.toast({ html: 'Error occured! Check console for details.' })
@@ -128,8 +130,8 @@ document.addEventListener('DOMContentLoaded', function() {
 				}
 			},
 
-			forwardDocumentModalOpen: function(documentId) {
-				this.selectedDocument = documentId
+			forwardDocumentModalOpen: function(document) {
+				this.selectedDocument = document
 				M.Modal.getInstance(document.querySelector('#documentForwardModal')).open()
 			},
 
@@ -179,7 +181,7 @@ document.addEventListener('DOMContentLoaded', function() {
 					})
 			},
 
-			approveDocument: function(documentId) {
+			approveDocument: function(document) {
 				if (sessionGet('OTPAuthenticated') == null) {
 					M.toast({ html: 'You need to authenticate session.' })
 					this.sessionSetModal()
@@ -188,16 +190,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
 				let currentVue = this
 				showWait()
-				fetch(`/api/document/${documentId}/approve`, {
+				fetch(`/api/document/${document._id}/approve`, {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json'
 					},
-					body: JSON.stringify({ officer: localStorage.getItem('loggeduser') })
+					body: JSON.stringify({ comment: document.comment, officer: localStorage.getItem('loggeduser') })
 				})
 					.then(function(response) {
 						if (response.status == 200) {
 							M.toast({ html: 'Document approved!' })
+							document.comment = ''
 							// currentVue.approved = true
 						} else {
 							M.toast({ html: 'Error occured! Check console for details.' })
@@ -213,19 +216,20 @@ document.addEventListener('DOMContentLoaded', function() {
 					})
 			},
 
-			finalizeDocument: function(documentId) {
+			finalizeDocument: function(document) {
 				let currentVue = this
 				showWait()
-				fetch(`/api/document/${documentId}/finalize`, {
+				fetch(`/api/document/${document._id}/finalize`, {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json'
 					},
-					body: JSON.stringify({ officer: localStorage.getItem('loggeduser') })
+					body: JSON.stringify({ comment: document.comment, officer: localStorage.getItem('loggeduser') })
 				})
 					.then(function(response) {
 						if (response.status == 200) {
 							M.toast({ html: 'Document finalized!' })
+							document.comment = ''
 							// currentVue.done = true
 						} else {
 							M.toast({ html: 'Error occured! Check console for details.' })
@@ -245,16 +249,17 @@ document.addEventListener('DOMContentLoaded', function() {
 				let currentVue = this
 
 				showWait()
-				fetch(`/api/document/${currentVue.selectedDocument}/forward`, {
+				fetch(`/api/document/${currentVue.selectedDocument._id}/forward`, {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json'
 					},
-					body: JSON.stringify({ officer: localStorage.getItem('loggeduser'), newOfficer: currentVue.forwardOfficer })
+					body: JSON.stringify({ comment: currentVue.selectedDocument.comment, officer: localStorage.getItem('loggeduser'), newOfficer: currentVue.forwardOfficer })
 				})
 					.then(function(response) {
 						if (response.status == 200) {
 							M.toast({ html: 'Document forwarded!' })
+							currentVue.selectedDocument.comment = ''
 							// currentVue.done = true
 						} else {
 							M.toast({ html: 'Error occured! Check console for details.' })
