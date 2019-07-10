@@ -2,9 +2,9 @@ const Document = require('../models/document')
 const User = require('../models/user')
 
 const moment = require('moment')
-const aws = require('aws-sdk')
-const S3_BUCKET = process.env.S3_BUCKET
-aws.config.region = process.env.AWS_REGION
+// const aws = require('aws-sdk')
+// const S3_BUCKET = process.env.S3_BUCKET
+// aws.config.region = process.env.AWS_REGION
 const msg91 = require('msg91')('247111AI4S9E1P5bea6b3a', 'OFAJMA', '4')
 
 const util = require('./util')
@@ -202,31 +202,31 @@ exports.document_finalize_post = (req, res) => {
 	})
 }
 
-exports.document_sign_s3_get = (req, res) => {
-	const s3 = new aws.S3()
-	const fileName = req.query.fileName
-	const fileType = req.query.fileType
+// exports.document_sign_s3_get = (req, res) => {
+// 	const s3 = new aws.S3()
+// 	const fileName = req.query.fileName
+// 	const fileType = req.query.fileType
 
-	const s3Params = {
-		Bucket: S3_BUCKET,
-		Key: fileName,
-		Expires: 60,
-		ContentType: fileType,
-		ACL: 'public-read'
-	}
+// 	const s3Params = {
+// 		Bucket: S3_BUCKET,
+// 		Key: fileName,
+// 		Expires: 60,
+// 		ContentType: fileType,
+// 		ACL: 'public-read'
+// 	}
 
-	s3.getSignedUrl('putObject', s3Params, (err, data) => {
-		if (err) {
-			console.error(err)
-			return res.status(500).send(err)
-		}
-		const returnData = {
-			signedRequest: data,
-			url: `https://${S3_BUCKET}.s3.amazonaws.com/${fileName}`
-		}
-		res.send(JSON.stringify(returnData))
-	})
-}
+// 	s3.getSignedUrl('putObject', s3Params, (err, data) => {
+// 		if (err) {
+// 			console.error(err)
+// 			return res.status(500).send(err)
+// 		}
+// 		const returnData = {
+// 			signedRequest: data,
+// 			url: `https://${S3_BUCKET}.s3.amazonaws.com/${fileName}`
+// 		}
+// 		res.send(JSON.stringify(returnData))
+// 	})
+// }
 
 exports.post_OTP_Request = function(req, res) {
 	User.findById(req.body.officer).exec((err, result) => {

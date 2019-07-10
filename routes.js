@@ -124,7 +124,7 @@ router.get('/api/documents/user/:userid/to', documentController.documents_user_t
 
 router.get('/api/documents/user/:userid/from', documentController.documents_user_from_get)
 
-router.get('/api/document/sign-s3', documentController.document_sign_s3_get)
+// router.get('/api/document/sign-s3', documentController.document_sign_s3_get)
 
 router.post('/api/document/getOTP', documentController.post_OTP_Request)
 
