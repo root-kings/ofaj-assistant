@@ -306,38 +306,49 @@ document.addEventListener('DOMContentLoaded', function() {
 			onFileUpload: function() {
 				this.file = this.$refs.file.files[0]
 				if (this.file == null) return alert('No file selected.')
-				this.getSignedRequest(this.file)
+				this.uploadFile(this.file)
 			},
 
-			getSignedRequest: function(file) {
+			// getSignedRequest: function(file) {
+			// 	showWait()
+			// 	// console.log(file)
+			// 	currentVue = this
+
+			// 	fetch(`/api/document/sign-s3?fileName=${file.name}&fileType=${file.type}`)
+			// 		.then(function(response) {
+			// 			return response.json()
+			// 		})
+			// 		.then(function(data) {
+			// 			currentVue.uploadFile(file, data.signedRequest, data.url)
+			// 		})
+			// 		.catch(function(error) {
+			// 			M.toast({ html: 'Error occured! Check console for details.' })
+			// 			console.error(error)
+			// 		})
+			// },
+
+			uploadFile: function(file) {
+				// uploadFile: function(file, signedRequest, url) {
 				showWait()
-				// console.log(file)
 				currentVue = this
 
-				fetch(`/api/document/sign-s3?fileName=${file.name}&fileType=${file.type}`)
-					.then(function(response) {
-						return response.json()
-					})
-					.then(function(data) {
-						currentVue.uploadFile(file, data.signedRequest, data.url)
-					})
-					.catch(function(error) {
-						M.toast({ html: 'Error occured! Check console for details.' })
-						console.error(error)
-					})
-			},
-
-			uploadFile: function(file, signedRequest, url) {
-				showWait()
-				currentVue = this
-
-				fetch(signedRequest, {
-					method: 'PUT',
-					mode: 'cors',
-					body: file
+				// fetch(signedRequest, {
+				// 	method: 'PUT',
+				// 	mode: 'cors',
+				// 	body: file
+				// })
+				let fileformdata = new FormData()
+				fileformdata.append('file', file)
+				fetch('/api/document/upload', {
+					method: 'POST',
+					body: fileformdata
 				})
+					.then(response=>response.json())
 					.then(function(response) {
-						currentVue.fileUrl = url
+						// currentVue.fileUrl = url
+						currentVue.fileUrl = response.file
+						console.log(response)
+						
 					})
 					.catch(function(error) {
 						M.toast({ html: 'Error occured! Check console for details.' })

@@ -148,18 +148,33 @@ router.post('/api/document/:id/forward', documentController.document_forward_pos
 router.post('/api/document/:id/edit', documentController.document_update_post)
 
 const multer = require('multer')
-const storage = multer.diskStorage({
-	destination: (req, file, cb) => {
-		cb(null, 'public/documents')
+const mime = require('mime')
+// const storage = multer.diskStorage()
+var storage = multer.diskStorage({
+	destination: function(req, file, cb) {
+		cb(null, __dirname + '/public/files')
 	},
-	filename: (req, file, cb) => {
-		cb(null, file.fileName + '-' + Date.now())
+	filename: function(req, file, cb) {
+		console.log(file)
+		cb(
+			null,
+			file.originalname
+				.split(' ')
+				.join('_')
+				.split(' ')
+				.join('_') +
+				'_' +
+				Date.now() +
+				'.' +
+				mime.getExtension(file.mimetype)
+		)
 	}
 })
-const upload = multer({ storage: storage })
 
-router.post('/api/document/upload', upload.single('image'), (req, res, next) => {
-	res.json({ file: 'public/documents/' + req.file.filename })
+var upload = multer({ storage: storage })
+
+router.post('/api/document/upload', upload.single('file'), (req, res, next) => {
+	res.json({ file: '/files/' + req.file.filename })
 })
 
 module.exports = router
