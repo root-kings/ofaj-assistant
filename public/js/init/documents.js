@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			officers: [],
 			forwardOfficer: '',
 			selectedDocument: '',
+			selectedDocFormat: '',
 			OTP: '',
 			OTPHash: ''
 		},
@@ -279,6 +280,7 @@ document.addEventListener('DOMContentLoaded', function() {
 					applicant: this.applicant,
 					name: this.name,
 					officer: this.selectedofficer,
+					format: this.selectedDocFormat,
 					urgent: this.urgent
 				}
 
