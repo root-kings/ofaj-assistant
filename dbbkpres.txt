@@ -1,0 +1,2 @@
+mongorestore -d ofaj-db ofaj-db/ofaj -u admin -p 'adminPassword' --authenticationDatabase 'admin'
+mongodump --out ofaj-db --uri "mongodb://admin:adminPassword@localhost:27017/ofaj?authSource=admin"
