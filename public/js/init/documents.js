@@ -25,20 +25,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
 		methods: {
 			poplateDocuments: function() {
-				currentVue = this
+				let currentVue = this
 				fetch(`/api/documents/user/${localStorage.getItem('loggeduser')}/to`)
 					.then(function(response) {
 						return response.json()
 					})
-					.then(function(documents) {
-						documents.forEach((document, docIndex) => {
-							if (document.history.length > 0) document.approved = document.history[document.history.length - 1].action == 'Approved'
+					.then(function(docs) {
+						docs.forEach((doc, docIndex) => {
+							if (doc.history.length > 0) doc.approved = doc.history[doc.history.length - 1].action == 'Approved'
 
-							if (document.rejected) documents.splice(docIndex, 1)
-							document.comment = ''
+							if (doc.rejected) docs.splice(docIndex, 1)
+							doc.comment = ''
 						})
 
-						currentVue.attendingdocuments = documents
+						currentVue.attendingdocuments = docs
 						// currentVue.documents.normal = documents.filter(document => !document.urgent)
 					})
 					.catch(function(error) {
@@ -50,8 +50,8 @@ document.addEventListener('DOMContentLoaded', function() {
 					.then(function(response) {
 						return response.json()
 					})
-					.then(function(documents) {
-						currentVue.selfdocuments = documents
+					.then(function(docs) {
+						currentVue.selfdocuments = docs
 						// currentVue.documents.normal = documents.filter(document => !document.urgent)
 					})
 					.catch(function(error) {
@@ -75,16 +75,16 @@ document.addEventListener('DOMContentLoaded', function() {
 					.then(function(response) {
 						return response.json()
 					})
-					.then(function(document) {
-						currentVue.name = document.name
-						currentVue.urgent = document.urgent
-						currentVue.fileUrl = document.fileUrl
-						currentVue.done = document.done
-						currentVue.rejected = document.rejected
-						currentVue._id = document._id
-						currentVue.applicant = document.applicant
+					.then(function(doc) {
+						currentVue.name = doc.name
+						currentVue.urgent = doc.urgent
+						currentVue.fileUrl = doc.fileUrl
+						currentVue.done = doc.done
+						currentVue.rejected = doc.rejected
+						currentVue._id = doc._id
+						currentVue.applicant = doc.applicant
 						// currentVue.currentOfficer = document.currentOfficer
-						currentVue.history = document.history
+						currentVue.history = doc.history
 						currentVue.passingOfficerLoggedIn = localStorage.getItem('loggeduser') == currentVue.currentOfficer._id
 					})
 					.catch(function(error) {
@@ -93,7 +93,7 @@ document.addEventListener('DOMContentLoaded', function() {
 					})
 			},
 
-			rejectDocument: function(document) {
+			rejectDocument: function(doc) {
 				if (sessionGet('OTPAuthenticated') == null) {
 					M.toast({ html: 'You need to authenticate session.' })
 					this.sessionSetModal()
@@ -103,17 +103,17 @@ document.addEventListener('DOMContentLoaded', function() {
 				if (confirm('Reject this document?')) {
 					let currentVue = this
 					showWait()
-					fetch(`/api/document/${document._id}/reject`, {
+					fetch(`/api/document/${doc._id}/reject`, {
 						method: 'POST',
 						headers: {
 							'Content-Type': 'application/json'
 						},
-						body: JSON.stringify({ comment: document.comment, officer: localStorage.getItem('loggeduser') })
+						body: JSON.stringify({ comment: doc.comment, officer: localStorage.getItem('loggeduser') })
 					})
 						.then(function(response) {
 							if (response.status == 200) {
 								M.toast({ html: 'Document rejected!' })
-								document.comment = ''
+								doc.comment = ''
 								// currentVue.rejected = true
 							} else {
 								M.toast({ html: 'Error occured! Check console for details.' })
@@ -130,8 +130,8 @@ document.addEventListener('DOMContentLoaded', function() {
 				}
 			},
 
-			forwardDocumentModalOpen: function(document) {
-				this.selectedDocument = document
+			forwardDocumentModalOpen: function(doc) {
+				this.selectedDocument = doc
 				M.Modal.getInstance(document.querySelector('#documentForwardModal')).open()
 			},
 
@@ -157,7 +157,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			},
 
 			getOTPRequest: function() {
-				currentVue = this
+				let currentVue = this
 				fetch(`/api/document/getOTP`, {
 					method: 'POST',
 					headers: {
@@ -181,7 +181,7 @@ document.addEventListener('DOMContentLoaded', function() {
 					})
 			},
 
-			approveDocument: function(document) {
+			approveDocument: function(doc) {
 				if (sessionGet('OTPAuthenticated') == null) {
 					M.toast({ html: 'You need to authenticate session.' })
 					this.sessionSetModal()
@@ -190,17 +190,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
 				let currentVue = this
 				showWait()
-				fetch(`/api/document/${document._id}/approve`, {
+				fetch(`/api/document/${doc._id}/approve`, {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json'
 					},
-					body: JSON.stringify({ comment: document.comment, officer: localStorage.getItem('loggeduser') })
+					body: JSON.stringify({ comment: doc.comment, officer: localStorage.getItem('loggeduser') })
 				})
 					.then(function(response) {
 						if (response.status == 200) {
 							M.toast({ html: 'Document approved!' })
-							document.comment = ''
+							doc.comment = ''
 							// currentVue.approved = true
 						} else {
 							M.toast({ html: 'Error occured! Check console for details.' })
@@ -216,20 +216,20 @@ document.addEventListener('DOMContentLoaded', function() {
 					})
 			},
 
-			finalizeDocument: function(document) {
+			finalizeDocument: function(doc) {
 				let currentVue = this
 				showWait()
-				fetch(`/api/document/${document._id}/finalize`, {
+				fetch(`/api/document/${doc._id}/finalize`, {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json'
 					},
-					body: JSON.stringify({ comment: document.comment, officer: localStorage.getItem('loggeduser') })
+					body: JSON.stringify({ comment: doc.comment, officer: localStorage.getItem('loggeduser') })
 				})
 					.then(function(response) {
 						if (response.status == 200) {
 							M.toast({ html: 'Document finalized!' })
-							document.comment = ''
+							doc.comment = ''
 							// currentVue.done = true
 						} else {
 							M.toast({ html: 'Error occured! Check console for details.' })
@@ -319,7 +319,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			getSignedRequest: function(file) {
 				showWait()
 				// console.log(file)
-				currentVue = this
+				let currentVue = this
 
 				fetch(`/api/document/sign-s3?fileName=${file.name}&fileType=${file.type}`)
 					.then(function(response) {
@@ -336,7 +336,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 			uploadFile: function(file, signedRequest, url) {
 				showWait()
-				currentVue = this
+				let currentVue = this
 
 				fetch(signedRequest, {
 					method: 'PUT',
