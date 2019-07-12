@@ -38,7 +38,7 @@ block content
                                             i.material-icons.left visibility
 
 
-                                    h6.col.s8 Current status: {{ document.rejected ? "Rejected": document.done ? "Done" : "Pending"}}
+                                    h6.col.s8 Current status: {{ document.rejected ? "Rejected": document.done ? "Finalize" : "Pending"}}
 
 
                                     h6.col.s12 Applicant: {{ document.applicant.name }}
@@ -58,11 +58,11 @@ block content
                                             //- i.material-icons.left done
                                             //- @click="approveDocument",
                                     p.col.s6.m3
-                                        a.btn.full-width.orange( :disabled="document.done || document.rejected || !document.approved", @click="forwardDocumentModalOpen(document)" ) Forward
+                                        a.btn.full-width.orange( :disabled="document.done", @click="forwardDocumentModalOpen(document)" ) Forward
                                             //- i.material-icons.left done
                                             //- @click="forwardDocument",
                                     p.col.s6.m3
-                                        button.btn.full-width.blue( :disabled="document.done || document.rejected || !document.approved", @click="finalizeDocument(document)" ) Done
+                                        button.btn.full-width.blue( :disabled="document.done || document.rejected || !document.approved", @click="finalizeDocument(document)" ) Finalize
                                             //- i.material-icons.left done
                                             //- @click="finalizeDocument",
                                     p.col.s6.m3
@@ -108,7 +108,7 @@ block content
                                             i.material-icons.left visibility
 
 
-                                    h6.col.s8 Current status: {{ document.rejected ? "Rejected": document.done ? "Done" : "Pending"}}
+                                    h6.col.s8 Current status: {{ document.rejected ? "Rejected": document.done ? "Finalized" : "Pending"}}
 
 
                                     h6.col.s12 Applicant: {{ document.applicant.name }}
