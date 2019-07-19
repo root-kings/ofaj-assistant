@@ -37,8 +37,9 @@ block content
                                         a.btn.purple(:href="document.fileUrl", target="_blank") View
                                             i.material-icons.left visibility
 
-                                    .col.s12.pdf-container
+                                    .col.s12.pdf-container(:id="'pdf-container'+document._id")
                                         canvas.pdf(:id="'pdf'+document._id")
+                                        .konva-container(:id="'konva-container'+document._id")
 
                                     h6.col.s8 Current status: {{ document.rejected ? "Rejected": document.done ? "Finalize" : "Pending"}}
 
@@ -46,15 +47,22 @@ block content
                                     h6.col.s12 Applicant: {{ document.applicant.name }}
                                     h6.col.s12 Current Passing Officer: {{ document.currentOfficer.name }}
 
-                                
+
                                 .row
-                                    .input-field.col.s12.m6
+                                    //- .input-field.col.s12.m6
                                         textarea.materialize-textarea(:id="'comment'+document._id", v-model="document.comment")
                                         label(for="'comment'+document._id") Comment
-                                        
 
-                                
-                                
+                                    p.col.s6.m3
+                                        button.btn.full-width.orange( :disabled="document.done || document.approved || document.rejected", @click="addCommentToPDF(document._id)" ) Comment
+                                            //- i.material-icons.left done
+                                            //- @click="approveDocument",
+                                    p.col.s6.m3
+                                        button.btn.full-width.green( :disabled="document.done || document.approved || document.rejected", @click="finalizeTextOnCanvas(document._id)" ) Com Done
+                                            //- i.material-icons.left done
+                                            //- @click="approveDocument",
+
+
                                     p.col.s6.m3
                                         button.btn.full-width.green( :disabled="document.done || document.approved || document.rejected", @click="approveDocument(document)" ) Approve
                                             //- i.material-icons.left done
@@ -71,6 +79,14 @@ block content
                                         button.btn.full-width.red( :disabled="document.done || document.approved || document.rejected", @click="rejectDocument(document)" ) Reject
                                             //- i.material-icons.left close
                                             //- @click="rejectDocument",
+
+                                    .menu
+                                        ul.menu-options
+                                            li.menu-option Comment
+                                            li.menu-option Approve
+                                            li.menu-option Reject
+
+
 
                                 .row    
                                     h6.light.col.s12 History of Officers: 
@@ -237,4 +253,5 @@ block content
 
 block scripts
     script(src="/js/lib/pdf.js")
+    script(src="/js/lib/konva.min.js")
     script(src="/js/init/documents.js")

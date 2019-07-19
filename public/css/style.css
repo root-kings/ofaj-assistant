@@ -245,13 +245,24 @@ span.tiny {
 
 .pdf-container {
 	/* width: 100%; */
+	/* position: relative; */
 	/* height: auto; */
 	/* display: flex; */
 	/* justify-content: center; */
 	overflow: scroll;
-	max-height: 80vh;
+	/* min-height: 50vh; */
+	height:500px;
+	position: relative;
 }
 
-.pdf-container .pdf{
+.pdf-container .pdf, .konva-container{
 	/* flex: 0 1 auto; */
+	position: absolute;
+	top:0;
+	left:0;
+
 }
+
+/* .pdf-container .pdf { */
+	/* visibility: hidden; */
+/* } */
