@@ -242,3 +242,16 @@ span.tiny {
 .no-border {
 	border: none;
 }
+
+.pdf-container {
+	/* width: 100%; */
+	/* height: auto; */
+	/* display: flex; */
+	/* justify-content: center; */
+	overflow: scroll;
+	max-height: 80vh;
+}
+
+.pdf-container .pdf{
+	/* flex: 0 1 auto; */
+}

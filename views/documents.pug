@@ -33,10 +33,12 @@ block content
                                 .row
                                     h6.light.col.s12 # {{ document._id }}
 
-                                    p.col.s12
+                                    //- p.col.s12
                                         a.btn.purple(:href="document.fileUrl", target="_blank") View
                                             i.material-icons.left visibility
 
+                                    .col.s12.pdf-container
+                                        canvas.pdf(:id="'pdf'+document._id")
 
                                     h6.col.s8 Current status: {{ document.rejected ? "Rejected": document.done ? "Finalize" : "Pending"}}
 
@@ -234,4 +236,5 @@ block content
 
 
 block scripts
+    script(src="/js/lib/pdf.js")
     script(src="/js/init/documents.js")

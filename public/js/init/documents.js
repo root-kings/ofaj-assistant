@@ -1,3 +1,8 @@
+// Loaded via <script> tag, create shortcut to access PDF.js exports.
+const pdfjsLib = window['pdfjs-dist/build/pdf']
+// The workerSrc property shall be specified.
+pdfjsLib.GlobalWorkerOptions.workerSrc = '/js/lib/pdf.worker.js'
+
 let documentsVue
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -19,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			officers: [],
 			forwardOfficer: '',
 			selectedDocument: '',
-			
+
 			OTP: '',
 			OTPHash: ''
 		},
@@ -40,8 +45,10 @@ document.addEventListener('DOMContentLoaded', function() {
 						})
 
 						currentVue.attendingdocuments = docs
+						currentVue.renderDocuments()
 						// currentVue.documents.normal = documents.filter(document => !document.urgent)
 					})
+
 					.catch(function(error) {
 						M.toast({ html: 'Error occured! Check console for details.' })
 						console.error(error)
@@ -351,12 +358,11 @@ document.addEventListener('DOMContentLoaded', function() {
 					method: 'POST',
 					body: fileformdata
 				})
-					.then(response=>response.json())
+					.then(response => response.json())
 					.then(function(response) {
 						// currentVue.fileUrl = url
 						currentVue.fileUrl = response.file
 						console.log(response)
-						
 					})
 					.catch(function(error) {
 						M.toast({ html: 'Error occured! Check console for details.' })
@@ -381,6 +387,49 @@ document.addEventListener('DOMContentLoaded', function() {
 						M.toast({ html: 'Error occured! Check console for details.' })
 						console.error(error)
 					})
+			},
+			renderDocuments: function() {
+				this.attendingdocuments.forEach(doc => {
+					let url = doc.fileUrl
+					let pdfid = `pdf${doc._id}`
+
+					// Asynchronous download of PDF
+					let loadingTask = pdfjsLib.getDocument(url)
+					loadingTask.promise.then(
+						function(pdf) {
+							// console.log('PDF loaded')
+
+							// Fetch the first page
+							let pageNumber = 1
+							pdf.getPage(pageNumber).then(function(page) {
+								// console.log('Page loaded')
+
+								let scale = 1.5
+								let viewport = page.getViewport({ scale: scale })
+
+								// Prepare canvas using PDF page dimensions
+								let canvas = document.getElementById(pdfid)
+								let context = canvas.getContext('2d')
+								canvas.height = viewport.height
+								canvas.width = viewport.width
+
+								// Render PDF page into canvas context
+								let renderContext = {
+									canvasContext: context,
+									viewport: viewport
+								}
+								let renderTask = page.render(renderContext)
+								renderTask.promise.then(function() {
+									// console.log('Page rendered')
+								})
+							})
+						},
+						function(reason) {
+							// PDF loading error
+							console.error(reason)
+						}
+					)
+				})
 			}
 		},
 
@@ -390,6 +439,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			// this.poplateDocument()
 			this.populateOfficers()
 			M.AutoInit()
+
 			// hideWait()
 		}
 	})
