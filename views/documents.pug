@@ -4,6 +4,7 @@ extends components/layout.pug
     a.teal-text.brand-logo.truncate(href="/") DOCUMENTS
 
 block styles
+    link(rel="stylesheet", href="/css/contextmenu.css")
 
 block content
 
@@ -31,15 +32,18 @@ block content
                             .collapsible-body.grey.lighten-3
 
                                 .row
-                                    h6.light.col.s12 # {{ document._id }}
 
                                     //- p.col.s12
                                         a.btn.purple(:href="document.fileUrl", target="_blank") View
                                             i.material-icons.left visibility
 
-                                    .col.s12.pdf-container(:id="'pdf-container'+document._id")
+                                    .col.s12.pdf-container(:id="'pdf-container'+document._id" @contextmenu.prevent="showContextMenu($event, document)")
                                         canvas.pdf(:id="'pdf'+document._id")
                                         .konva-container(:id="'konva-container'+document._id")
+
+
+                                .row
+                                    h6.light.col.s12 # {{ document._id }}
 
                                     h6.col.s8 Current status: {{ document.rejected ? "Rejected": document.done ? "Finalize" : "Pending"}}
 
@@ -48,17 +52,27 @@ block content
                                     h6.col.s12 Current Passing Officer: {{ document.currentOfficer.name }}
 
 
-                                .row
+                                //- .row
                                     //- .input-field.col.s12.m6
                                         textarea.materialize-textarea(:id="'comment'+document._id", v-model="document.comment")
                                         label(for="'comment'+document._id") Comment
 
                                     p.col.s6.m3
-                                        button.btn.full-width.orange( :disabled="document.done || document.approved || document.rejected", @click="addCommentToPDF(document._id)" ) Comment
+                                        button.btn.full-width.orange( :disabled="document.done || document.approved || document.rejected", @click="addCommentToPDF(document)" ) Comment
+
+                                    p.col.s6.m3
+                                        button.btn.full-width.orange( :disabled="document.done || document.approved || document.rejected", @click="signDocument(document)" ) Sign
                                             //- i.material-icons.left done
                                             //- @click="approveDocument",
+
                                     p.col.s6.m3
-                                        button.btn.full-width.green( :disabled="document.done || document.approved || document.rejected", @click="finalizeTextOnCanvas(document._id)" ) Com Done
+                                        button.btn.full-width.orange( :disabled="document.done || document.approved || document.rejected", @click="saveDocument(document)" ) Save
+                                            //- i.material-icons.left done
+                                            //- @click="approveDocument",
+
+
+                                    p.col.s6.m3
+                                        button.btn.full-width.green( :disabled="document.done || document.approved || document.rejected", @click="finalizeTextOnCanvas(document)" ) Done
                                             //- i.material-icons.left done
                                             //- @click="approveDocument",
 
@@ -80,11 +94,7 @@ block content
                                             //- i.material-icons.left close
                                             //- @click="rejectDocument",
 
-                                    .menu
-                                        ul.menu-options
-                                            li.menu-option Comment
-                                            li.menu-option Approve
-                                            li.menu-option Reject
+                                    
 
 
 
@@ -249,9 +259,11 @@ block content
                 a.btn.modal-close.waves-effect.waves-light.green.white-text(@click="onSubmit") Submit
 
 
+        include components/contextmenu.pug
 
 
 block scripts
     script(src="/js/lib/pdf.js")
+    script(src="/js/lib/jspdf.min.js")
     script(src="/js/lib/konva.min.js")
     script(src="/js/init/documents.js")

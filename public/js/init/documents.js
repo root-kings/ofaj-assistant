@@ -3,7 +3,7 @@ const pdfjsLib = window['pdfjs-dist/build/pdf']
 // The workerSrc property shall be specified.
 pdfjsLib.GlobalWorkerOptions.workerSrc = '/js/lib/pdf.worker.js'
 
-let documentsVue
+let documentsVue, konvaTransformerInstance
 
 document.addEventListener('DOMContentLoaded', function() {
 	showWait()
@@ -39,7 +39,9 @@ document.addEventListener('DOMContentLoaded', function() {
 					.then(function(docs) {
 						docs.forEach((doc, docIndex) => {
 							if (doc.history.length > 0) doc.approved = doc.history[doc.history.length - 1].action == 'Approved'
-
+							doc.isBeingEdited = false
+							doc.isBeingEdited = false
+							doc.isSigned = doc.approved
 							if (doc.rejected) docs.splice(docIndex, 1)
 							doc.comment = ''
 						})
@@ -138,8 +140,7 @@ document.addEventListener('DOMContentLoaded', function() {
 				}
 			},
 
-			forwardDocumentModalOpen: function(doc) {
-				this.selectedDocument = doc
+			forwardDocumentModalOpen: function() {
 				M.Modal.getInstance(document.querySelector('#documentForwardModal')).open()
 			},
 
@@ -189,75 +190,61 @@ document.addEventListener('DOMContentLoaded', function() {
 					})
 			},
 
-			approveDocument: function(doc) {
-				// if (sessionGet('OTPAuthenticated') == null) {
-				// 	M.toast({ html: 'You need to authenticate session.' })
-				// 	this.sessionSetModal()
-				// 	return
-				// }
+			approveDocument: function() {
+				if (sessionGet('OTPAuthenticated') == null) {
+					M.toast({ html: 'You need to authenticate session.' })
+					this.sessionSetModal()
+					return
+				}
 
-				let doccanvas = document.querySelector(`#pdf${doc._id}`)
-				var stage = new Konva.Stage({
-					container: `konva-container${doc._id}`, // id of container <div>
-					width: doccanvas.width,
-					height: doccanvas.height
+				let currentVue = this
+				let doc = this.selectedDocument
+
+				showWait()
+
+				// let formdata = new FormData()
+
+				// formdata.append('comment', doc.comment)
+				// formdata.append('officer', localStorage.getItem('loggeduser'))
+				// formdata.append('fileData', doc.fileData)
+				// formdata.append('fileUrl', doc.fileUrl)
+			
+				fetch(`/api/document/${doc._id}/approve`, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+
+					// body: formdata
+					body: JSON.stringify({
+						comment: doc.comment,
+						officer: localStorage.getItem('loggeduser'),
+						fileData: doc.fileData,
+						fileUrl: doc.fileUrl
+					})
 				})
-
-				var layer = new Konva.Layer()
-				stage.add(layer)
-
-				var textNode = new Konva.Text({
-					text: 'Document digitally signed by Tusar Pandey',
-					x: 50,
-					y: 80,
-					fontSize: 20,
-					draggable: true,
-					width: 300
-				})
-
-				layer.add(textNode)
-
-				
-
-	
-
-				layer.draw()
-
-
-				
-				
-
-
-				// let currentVue = this
-				// showWait()
-				// fetch(`/api/document/${doc._id}/approve`, {
-				// 	method: 'POST',
-				// 	headers: {
-				// 		'Content-Type': 'application/json'
-				// 	},
-				// 	body: JSON.stringify({ comment: doc.comment, officer: localStorage.getItem('loggeduser') })
-				// })
-				// 	.then(function(response) {
-				// 		if (response.status == 200) {
-				// 			M.toast({ html: 'Document approved!' })
-				// 			doc.comment = ''
-				// 			// currentVue.approved = true
-				// 		} else {
-				// 			M.toast({ html: 'Error occured! Check console for details.' })
-				// 		}
-				// 	})
-				// 	.catch(function(error) {
-				// 		M.toast({ html: 'Error occured! Check console for details.' })
-				// 		console.error(error)
-				// 	})
-				// 	.then(function() {
-				// 		currentVue.poplateDocuments()
-				// 		hideWait()
-				// 	})
+					.then(function(response) {
+						if (response.status == 200) {
+							M.toast({ html: 'Document approved!' })
+							doc.comment = ''
+							// currentVue.approved = true
+						} else {
+							M.toast({ html: 'Error occured! Check console for details.' })
+						}
+					})
+					.catch(function(error) {
+						M.toast({ html: 'Error occured! Check console for details.' })
+						console.error(error)
+					})
+					.then(function() {
+						currentVue.poplateDocuments()
+						hideWait()
+					})
 			},
 
-			finalizeDocument: function(doc) {
+			finalizeDocument: function() {
 				let currentVue = this
+				let doc = currentVue.selectedDocument
 				showWait()
 				fetch(`/api/document/${doc._id}/finalize`, {
 					method: 'POST',
@@ -436,7 +423,7 @@ document.addEventListener('DOMContentLoaded', function() {
 							pdf.getPage(pageNumber).then(function(page) {
 								// console.log('Page loaded')
 
-								let scale = 1.5
+								let scale = 1.5 //1.5
 								let viewport = page.getViewport({ scale: scale })
 
 								// Prepare canvas using PDF page dimensions
@@ -463,13 +450,17 @@ document.addEventListener('DOMContentLoaded', function() {
 					)
 				})
 			},
-			addCommentToPDF: function(docid) {
-				let doccanvas = document.querySelector(`#pdf${docid}`)
+			addCommentToPDF: function() {
+				console.log('in addCommentToPDF')
+				let doc = this.selectedDocument
+				let doccanvas = document.querySelector(`#pdf${doc._id}`)
 				var stage = new Konva.Stage({
-					container: `konva-container${docid}`, // id of container <div>
+					container: `konva-container${doc._id}`, // id of container <div>
 					width: doccanvas.width,
 					height: doccanvas.height
 				})
+
+				doc.isBeingEdited = true
 
 				var layer = new Konva.Layer()
 				stage.add(layer)
@@ -485,7 +476,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 				layer.add(textNode)
 
-				var tr = new Konva.Transformer({
+				konvaTransformerInstance = new Konva.Transformer({
 					node: textNode,
 					enabledAnchors: ['middle-left', 'middle-right'],
 					// set minimum width of text
@@ -503,18 +494,18 @@ document.addEventListener('DOMContentLoaded', function() {
 					})
 				})
 
-				layer.add(tr)
+				layer.add(konvaTransformerInstance)
 
 				layer.draw()
 
 				textNode.on('click', () => {
-					tr.show()
+					konvaTransformerInstance.show()
 				})
 
 				textNode.on('dblclick', () => {
 					// hide text node and transformer:
 					textNode.hide()
-					tr.hide()
+					konvaTransformerInstance.hide()
 					layer.draw()
 
 					// create textarea over canvas with absolute position
@@ -588,7 +579,7 @@ document.addEventListener('DOMContentLoaded', function() {
 						window.removeEventListener('click', handleOutsideClick)
 						textNode.show()
 						// tr.show()
-						tr.forceUpdate()
+						konvaTransformerInstance.forceUpdate()
 						layer.draw()
 					}
 
@@ -632,7 +623,7 @@ document.addEventListener('DOMContentLoaded', function() {
 					})
 
 					function handleOutsideClick(e) {
-						tr.hide()
+						konvaTransformerInstance.hide()
 						if (e.target !== textarea) {
 							removeTextarea()
 						}
@@ -642,19 +633,107 @@ document.addEventListener('DOMContentLoaded', function() {
 					})
 				})
 			},
-			finalizeTextOnCanvas: function(docid) {
-				let doccanvas = document.getElementById(`pdf${docid}`)
-				let konvacont = document.getElementById(`konva-container${docid}`)
+
+			finalizeTextOnCanvas: function() {
+				let doc = this.selectedDocument
+				let doccanvas = document.getElementById(`pdf${doc._id}`)
+				let konvacont = document.getElementById(`konva-container${doc._id}`)
 				let annotationcanvas = konvacont.querySelector('canvas')
 
+				if (konvaTransformerInstance) konvaTransformerInstance.hide()
 				// console.log(annotationcanvas)
 
 				let ctx_doc = doccanvas.getContext('2d')
 				// let ctx_annotation = annotationcanvas.getContext('2d')
 
-				ctx_doc.drawImage(annotationcanvas, 0, 0, annotationcanvas.width * 1.3, annotationcanvas.height * 1.3)
+				ctx_doc.drawImage(annotationcanvas, 0, 0, annotationcanvas.width, annotationcanvas.height)
 
 				annotationcanvas.parentElement.removeChild(annotationcanvas)
+
+				// doc.fileData = ctx_doc.toDataURL
+
+				var imgData = doccanvas.toDataURL('image/jpeg', 1.0)
+
+				var newPDF = new jsPDF()
+
+				newPDF.addImage(imgData, 'JPEG', 0, 0)
+
+				doc.fileData = newPDF.output('datauristring')
+				// doc.fileData = dataURLtoFile(imgData, 'filedata.jpg')
+
+				// console.log(doc.fileData)
+
+				doc.isBeingEdited = false
+				if (doc.isBeingSigned) {
+					doc.isBeingEdited = false
+					doc.isSigned = true
+				}
+
+				if (doc.isSigned && !doc.approved) {
+					this.approveDocument()
+				}
+			},
+
+			signDocument: function() {
+				if (sessionGet('OTPAuthenticated') == null) {
+					M.toast({ html: 'You need to authenticate session.' })
+					this.sessionSetModal()
+					return
+				}
+
+				let doc = this.selectedDocument
+
+				doc.isBeingEdited = true
+				doc.isBeingSigned = true
+
+				let doccanvas = document.querySelector(`#pdf${doc._id}`)
+				var stage = new Konva.Stage({
+					container: `konva-container${doc._id}`, // id of container <div>
+					width: doccanvas.width,
+					height: doccanvas.height
+				})
+
+				var layer = new Konva.Layer()
+				stage.add(layer)
+
+				var textNode = new Konva.Text({
+					text: 'Document digitally signed by Tusar Pandey',
+					x: 50,
+					y: 80,
+					fontSize: 20,
+					draggable: true,
+					width: 300
+				})
+
+				layer.add(textNode)
+
+				layer.draw()
+			},
+			// saveDocument: function(doc) {
+			// 	let doccanvas = document.querySelector(`#pdf${doc._id}`)
+			// 	// only jpeg is supported by jsPDF
+			// 	var imgData = doccanvas.toDataURL('image/jpeg', 1.0)
+
+			// 	doc.fileData = imgData
+			// 	// var pdf = new jsPDF()
+
+			// 	// pdf.addImage(imgData, 'JPEG', 0, 0)
+			// 	// pdf.save('download.pdf')
+			// },
+
+			showContextMenu: function(e, doc) {
+				this.selectedDocument = doc
+				console.log(e.clientX + ',' + e.clientY)
+				let cntnr = document.getElementById('cntnr')
+				cntnr.style.left = e.clientX
+				cntnr.style.top = e.clientY
+				// $("#cntnr").hide(100);
+				cntnr.style.display = 'block'
+
+				document.addEventListener('click', function hidemenu() {
+					cntnr.style.display = 'none'
+					document.removeEventListener('click', hidemenu)
+				})
 			}
 		},
 
