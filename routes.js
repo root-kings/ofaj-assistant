@@ -147,6 +147,8 @@ router.post('/api/document/:id/forward', documentController.document_forward_pos
 
 router.post('/api/document/:id/edit', documentController.document_update_post)
 
+router.post('/api/document/:id/save', documentController.document_save_post)
+
 const multer = require('multer')
 const mime = require('mime')
 // const storage = multer.diskStorage()

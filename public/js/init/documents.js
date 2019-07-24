@@ -208,7 +208,7 @@ document.addEventListener('DOMContentLoaded', function() {
 				// formdata.append('officer', localStorage.getItem('loggeduser'))
 				// formdata.append('fileData', doc.fileData)
 				// formdata.append('fileUrl', doc.fileUrl)
-			
+
 				fetch(`/api/document/${doc._id}/approve`, {
 					method: 'POST',
 					headers: {
@@ -218,9 +218,9 @@ document.addEventListener('DOMContentLoaded', function() {
 					// body: formdata
 					body: JSON.stringify({
 						comment: doc.comment,
-						officer: localStorage.getItem('loggeduser'),
-						fileData: doc.fileData,
-						fileUrl: doc.fileUrl
+						officer: localStorage.getItem('loggeduser')
+						// fileData: doc.fileData,
+						// fileUrl: doc.fileUrl
 					})
 				})
 					.then(function(response) {
@@ -668,6 +668,33 @@ document.addEventListener('DOMContentLoaded', function() {
 					doc.isBeingEdited = false
 					doc.isSigned = true
 				}
+
+				fetch(`/api/document/${doc._id}/save`, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+
+					// body: formdata
+					body: JSON.stringify({
+						fileData: doc.fileData,
+						fileUrl: doc.fileUrl
+					})
+				})
+					.then(function(response) {
+						if (response.status == 200) {
+							M.toast({ html: 'Document saved!' })
+						} else {
+							M.toast({ html: 'Error occured! Check console for details.' })
+						}
+					})
+					.catch(function(error) {
+						M.toast({ html: 'Error occured! Check console for details.' })
+						console.error(error)
+					})
+					.then(function() {
+						hideWait()
+					})
 
 				if (doc.isSigned && !doc.approved) {
 					this.approveDocument()

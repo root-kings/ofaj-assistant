@@ -182,20 +182,27 @@ exports.document_approve_post = (req, res) => {
 		comment: req.body.comment
 	}
 
-	// console.log(req.body)
-
-	var base64Data = req.body.fileData.replace(/^data:application\/pdf;base64,/, '')
-
-	require('fs').writeFile(__dirname+'/../public'+req.body.fileUrl, base64Data, 'base64', function(err) {
-		console.error(err)
-	})
-
 	Document.findOneAndUpdate({ _id: req.params.id }, { approved: true, $push: { history: historyItem } }, { safe: true, upsert: true }).exec((err, result) => {
 		if (err) return res.status(500).send(err)
 
 		if (result) return res.send(result)
 
 		return res.send(false)
+	})
+}
+
+exports.document_save_post = (req, res) => {
+	// console.log(req.body)
+
+	var base64Data = req.body.fileData.replace(/^data:application\/pdf;base64,/, '')
+
+	require('fs').writeFile(__dirname + '/../public' + req.body.fileUrl, base64Data, 'base64', function(err) {
+		if (err) {
+			console.error(err)
+			return res.status(500).send(err)
+		}
+
+		return res.send(true)
 	})
 }
 
