@@ -654,9 +654,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
 				var imgData = doccanvas.toDataURL('image/jpeg', 1.0)
 
-				var newPDF = new jsPDF()
+				var newPDF = new jsPDF({
+					// orientation: 'p',
+					unit: 'mm',
+					format: 'a4'
+					// putOnlyUsedFonts: false,
+					// compress: false,
+					// precision: 2,
+					// userUnit: 1.0
+				})
 
-				newPDF.addImage(imgData, 'JPEG', 0, 0)
+				console.log(doccanvas)
+				console.log(annotationcanvas)
+				console.log(newPDF)
+
+				newPDF.addImage(imgData, 'JPEG', 0, 0,newPDF.internal.pageSize.width,newPDF.internal.pageSize.height)
 
 				doc.fileData = newPDF.output('datauristring')
 				// doc.fileData = dataURLtoFile(imgData, 'filedata.jpg')
