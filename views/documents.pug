@@ -21,7 +21,7 @@ block content
                             span.new.badge.red(data-badge-caption="urgent")
 
             .row
-                h5.light.col.s12 Requiring Attention
+                h5.light.col.s12 Pending Files
                 .col.s12
                     ul.collapsible.no-border.z-depth-0
                         li.tilted.z-depth-5(v-for="document in attendingdocuments", :key="document._id")
@@ -115,7 +115,7 @@ block content
 
 
             .row
-                h5.light.col.s12 Your Applications
+                h5.light.col.s12 Your Generated Files
                 .col.s12
                     ul.collapsible.no-border.z-depth-0
                         li.tilted.z-depth-5(v-for="document in selfdocuments", :key="document._id")
