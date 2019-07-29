@@ -1,16 +1,16 @@
 
 ul.vertical-menu-container#cntnr
     li
-        a.btn-floating.hoverable.waves-effect.waves-light.yellow(@click="addCommentToPDF()" v-if="!selectedDocument.isBeingEdited")
+        a.btn-floating.hoverable.waves-effect.waves-light.yellow(@click="addCommentToPDF($event)" v-if="!selectedDocument.isBeingEdited")
             i.material-icons comment
             //- comment
     li
         a.btn-floating.hoverable.waves-effect.waves-light.red(@click="signDocument()" v-if="!selectedDocument.isBeingEdited && !selectedDocument.isSigned")
             i.material-icons edit 
             //- sign
-    //- li
-        a.btn-floating.hoverable.waves-effect.waves-light.red
-            i.material-icons reply
+    li
+        a.btn-floating.hoverable.waves-effect.waves-light.pink(@click="addPageToPDF()")
+            i.material-icons add
             //- back
     li
         a.btn-floating.hoverable.waves-effect.waves-light.orange(@click="forwardDocumentModalOpen()" v-if="!selectedDocument.isBeingEdited")

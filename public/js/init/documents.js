@@ -49,9 +49,8 @@ document.addEventListener('DOMContentLoaded', function() {
 						currentVue.attendingdocuments = docs
 						// currentVue.documents.normal = documents.filter(document => !document.urgent)
 					})
-					.then(()=>{
+					.then(() => {
 						currentVue.renderDocuments()
-
 					})
 
 					.catch(function(error) {
@@ -415,7 +414,6 @@ document.addEventListener('DOMContentLoaded', function() {
 					let url = doc.fileUrl
 					let pdfid = `pdf${doc._id}`
 					let canvasContainer = document.getElementById(pdfid)
-					
 
 					function renderPage(page) {
 						let wrapper = document.createElement('div')
@@ -450,7 +448,23 @@ document.addEventListener('DOMContentLoaded', function() {
 					pdfjsLib.getDocument(url).then(renderPages)
 				})
 			},
-			addCommentToPDF: function() {
+
+			addPageToPDF: function() {
+				let doc = this.selectedDocument
+				let canvasContainer = document.querySelector(`#pdf${doc._id}`)
+				let wrapper = canvasContainer.lastChild
+				let lastcanvas = wrapper.lastChild
+
+				let canvas = document.createElement('canvas')
+				canvas.height = lastcanvas.height
+				canvas.width = lastcanvas.width
+				let ctx = canvas.getContext('2d')
+				ctx.fillStyle = '#ffffff'
+				ctx.fillRect(0, 0, canvas.width, canvas.height)
+				wrapper.appendChild(canvas)
+			},
+
+			addCommentToPDF: function(event) {
 				console.log('in addCommentToPDF')
 				let doc = this.selectedDocument
 				let doccanvas = document.querySelector(`#pdf${doc._id}`)
@@ -467,8 +481,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 				var textNode = new Konva.Text({
 					text: 'Comment',
-					x: 50,
-					y: 80,
+					x: event.clientX,
+					y: event.clientY,
 					fontSize: 20,
 					draggable: true,
 					width: 200

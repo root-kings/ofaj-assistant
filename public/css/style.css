@@ -231,6 +231,7 @@ span.tiny {
 .bordered.blue-border {
 	border-color: #2196f3;
 }
+
 .tilted {
 	transform: perspective(400px) rotateX(-3deg);
 	transition: transform 0.5s linear;
@@ -239,6 +240,26 @@ span.tiny {
 .tilted.active {
 	transform: perspective(400px) rotateX(0deg);
 }
+
+.collapsible li.active {
+	position: fixed;
+	width: 98vw;
+	height: 98vh;
+
+	left: 1vw;
+	top: 1vh;
+
+	display: flex;
+	flex-direction: column;
+	z-index: 1001;
+}
+
+.collapsible li.active .collapsible-body {
+	overflow: scroll;
+	flex: 1;
+}
+
+
 .no-border {
 	border: none;
 }
@@ -249,20 +270,30 @@ span.tiny {
 	/* height: auto; */
 	/* display: flex; */
 	/* justify-content: center; */
-	overflow: scroll;
+	/* overflow: scroll; */
 	/* min-height: 50vh; */
-	height:500px;
-	position: relative;
+	/* height: 500px; */
+	/* position: relative; */
 }
 
-.pdf-container .pdf, .konva-container{
-	/* flex: 0 1 auto; */
-	position: absolute;
-	top:0;
-	left:0;
+.pdf-container * {
+	/* position: relative; */
+}
 
+.pdf-container .pdf,
+.konva-container {
+	/* flex: 0 1 auto; */
+	/* position: absolute; */
+	/* top: 0; */
+	/* left: 0; */
+}
+
+
+.pdf-container canvas {
+	border: 1px solid #999999;
+	margin-bottom: 5px;
 }
 
 /* .pdf-container .pdf { */
-	/* visibility: hidden; */
+/* visibility: hidden; */
 /* } */
