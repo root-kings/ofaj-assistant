@@ -732,19 +732,44 @@ document.addEventListener('DOMContentLoaded', function() {
 					height: doccanvas.height
 				})
 
-				var layer = new Konva.Layer()
-				stage.add(layer)
-
-				var textNode = new Konva.Text({
-					text: 'Document digitally signed by Tusar Pandey',
-					x: 50,
-					y: 80,
-					fontSize: 20,
-					draggable: true,
-					width: 300
-				})
-
-				layer.add(textNode)
+		
+				var layer = new Konva.Layer();
+				var complexText = new Konva.Text({
+					x: 20,
+					y: 60,
+					text:
+						`Digitally Signed by:\n${doc.currentOfficer.name}\nOn: ${new moment()}\nTransaction ID: ${'123456'}.`,
+					fontSize: 16,
+					fontFamily: 'Calibri',
+					fill: '#555',
+					width: 300,
+					padding: 5,
+					align: 'left'
+				});
+		
+				var rect = new Konva.Rect({
+					x: 20,
+					y: 60,
+					stroke: '#555',
+					strokeWidth: 1,
+					fill: '#ffffff',
+					width: 175,
+					height: complexText.height(),
+					cornerRadius: 2
+				});
+				var group = new Konva.Group({
+					draggable: true
+				});
+				// add the shapes to the layer
+				
+				group.add(rect);
+				group.add(complexText);
+		
+		
+				layer.add(group)
+				// add the layer to the stage
+				stage.add(layer);
+			
 
 				layer.draw()
 			},
