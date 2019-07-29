@@ -47,8 +47,11 @@ document.addEventListener('DOMContentLoaded', function() {
 						})
 
 						currentVue.attendingdocuments = docs
-						currentVue.renderDocuments()
 						// currentVue.documents.normal = documents.filter(document => !document.urgent)
+					})
+					.then(()=>{
+						currentVue.renderDocuments()
+
 					})
 
 					.catch(function(error) {
@@ -411,43 +414,40 @@ document.addEventListener('DOMContentLoaded', function() {
 				this.attendingdocuments.forEach(doc => {
 					let url = doc.fileUrl
 					let pdfid = `pdf${doc._id}`
+					let canvasContainer = document.getElementById(pdfid)
+					
 
-					// Asynchronous download of PDF
-					let loadingTask = pdfjsLib.getDocument(url)
-					loadingTask.promise.then(
-						function(pdf) {
-							// console.log('PDF loaded')
+					function renderPage(page) {
+						let wrapper = document.createElement('div')
+						wrapper.className = 'canvas-wrapper'
+						let canvas = document.createElement('canvas')
+						console.log(page)
+						canvas.id = `${pdfid}_page${page.pageIndex}`
+						let ctx = canvas.getContext('2d')
 
-							// Fetch the first page
-							let pageNumber = 1
-							pdf.getPage(pageNumber).then(function(page) {
-								// console.log('Page loaded')
+						// console.log(canvasContainer.style.width)
 
-								let scale = 1.5 //1.5
-								let viewport = page.getViewport({ scale: scale })
-
-								// Prepare canvas using PDF page dimensions
-								let canvas = document.getElementById(pdfid)
-								let context = canvas.getContext('2d')
-								canvas.height = viewport.height
-								canvas.width = viewport.width
-
-								// Render PDF page into canvas context
-								let renderContext = {
-									canvasContext: context,
-									viewport: viewport
-								}
-								let renderTask = page.render(renderContext)
-								renderTask.promise.then(function() {
-									// console.log('Page rendered')
-								})
-							})
-						},
-						function(reason) {
-							// PDF loading error
-							console.error(reason)
+						let viewport = page.getViewport(1 /* canvasContainer.width / page.getViewport(1.0).width */)
+						let renderContext = {
+							canvasContext: ctx,
+							viewport: viewport
 						}
-					)
+						canvas.height = viewport.height
+						canvas.width = viewport.width
+
+						wrapper.appendChild(canvas)
+						// console.log(canvasContainer)
+						canvasContainer.appendChild(wrapper)
+
+						page.render(renderContext)
+					}
+
+					function renderPages(pdfDoc) {
+						for (let num = 1; num <= pdfDoc.numPages; num++) pdfDoc.getPage(num).then(renderPage)
+					}
+
+					pdfjsLib.disableWorker = true
+					pdfjsLib.getDocument(url).then(renderPages)
 				})
 			},
 			addCommentToPDF: function() {
@@ -668,7 +668,7 @@ document.addEventListener('DOMContentLoaded', function() {
 				console.log(annotationcanvas)
 				console.log(newPDF)
 
-				newPDF.addImage(imgData, 'JPEG', 0, 0,newPDF.internal.pageSize.width,newPDF.internal.pageSize.height)
+				newPDF.addImage(imgData, 'JPEG', 0, 0, newPDF.internal.pageSize.width, newPDF.internal.pageSize.height)
 
 				doc.fileData = newPDF.output('datauristring')
 				// doc.fileData = dataURLtoFile(imgData, 'filedata.jpg')
@@ -732,21 +732,19 @@ document.addEventListener('DOMContentLoaded', function() {
 					height: doccanvas.height
 				})
 
-		
-				var layer = new Konva.Layer();
+				var layer = new Konva.Layer()
 				var complexText = new Konva.Text({
 					x: 20,
 					y: 60,
-					text:
-						`Digitally Signed by:\n${doc.currentOfficer.name}\nOn: ${new moment()}\nTransaction ID: ${'123456'}.`,
+					text: `Digitally Signed by:\n${doc.currentOfficer.name}\nOn: ${new moment()}\nTransaction ID: ${'123456'}.`,
 					fontSize: 16,
 					fontFamily: 'Calibri',
 					fill: '#555',
 					width: 300,
 					padding: 5,
 					align: 'left'
-				});
-		
+				})
+
 				var rect = new Konva.Rect({
 					x: 20,
 					y: 60,
@@ -756,20 +754,18 @@ document.addEventListener('DOMContentLoaded', function() {
 					width: 175,
 					height: complexText.height(),
 					cornerRadius: 2
-				});
+				})
 				var group = new Konva.Group({
 					draggable: true
-				});
+				})
 				// add the shapes to the layer
-				
-				group.add(rect);
-				group.add(complexText);
-		
-		
+
+				group.add(rect)
+				group.add(complexText)
+
 				layer.add(group)
 				// add the layer to the stage
-				stage.add(layer);
-			
+				stage.add(layer)
 
 				layer.draw()
 			},

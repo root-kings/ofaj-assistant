@@ -38,7 +38,7 @@ block content
                                             i.material-icons.left visibility
 
                                     .col.s12.pdf-container(:id="'pdf-container'+document._id" @contextmenu.prevent="showContextMenu($event, document)")
-                                        canvas.pdf(:id="'pdf'+document._id")
+                                        .holder.pdf(:id="'pdf'+document._id")
                                         .konva-container(:id="'konva-container'+document._id")
 
 
