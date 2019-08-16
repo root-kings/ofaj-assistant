@@ -10,7 +10,7 @@ var DocumentSchema = new Schema(
 			required: true
 		},
 		format: {
-			type:String, 
+			type: String,
 			enum: ['Case Purchase', 'Tender Enquiry', 'GFR', 'Noting', 'Misceallaneous'],
 			default: 'Case Purchase'
 		},
@@ -53,8 +53,13 @@ var DocumentSchema = new Schema(
 					type: Date
 				},
 				action: {
-					type:String, 
+					type: String,
 					enum: ['Approved', 'Forwarded', 'Rejected', 'Finalized']
+				},
+				comment: {
+					type: String,
+					default: '',
+					required: true
 				}
 			}
 		]

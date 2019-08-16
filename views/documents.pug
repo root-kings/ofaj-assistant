@@ -4,6 +4,7 @@ extends components/layout.pug
     a.teal-text.brand-logo.truncate(href="/") DOCUMENTS
 
 block styles
+    link(rel="stylesheet", href="/css/contextmenu.css")
 
 block content
 
@@ -20,7 +21,7 @@ block content
                             span.new.badge.red(data-badge-caption="urgent")
 
             .row
-                h5.light.col.s12 Requiring Attention
+                h5.light.col.s12 Pending Files
                 .col.s12
                     ul.collapsible.no-border.z-depth-0
                         li.tilted.z-depth-5(v-for="document in attendingdocuments", :key="document._id")
@@ -31,37 +32,71 @@ block content
                             .collapsible-body.grey.lighten-3
 
                                 .row
-                                    h6.light.col.s12 # {{ document._id }}
 
-                                    p.col.s12
+                                    //- p.col.s12
                                         a.btn.purple(:href="document.fileUrl", target="_blank") View
                                             i.material-icons.left visibility
 
+                                    .col.s12.pdf-container(:id="'pdf-container'+document._id" @contextmenu.prevent="showContextMenu($event, document)")
+                                        .holder.pdf(:id="'pdf'+document._id")
+                                        .konva-container(:id="'konva-container'+document._id")
 
-                                    h6.col.s8 Current status: {{ document.rejected ? "Rejected": document.done ? "Done" : "Pending"}}
+
+                                .row
+                                    h6.light.col.s12 # {{ document._id }}
+
+                                    h6.col.s8 Current status: {{ document.rejected ? "Rejected": document.done ? "Finalize" : "Pending"}}
 
 
                                     h6.col.s12 Applicant: {{ document.applicant.name }}
                                     h6.col.s12 Current Passing Officer: {{ document.currentOfficer.name }}
 
-                                //- .row(v-if="passingOfficerLoggedIn")
-                                .row
+
+                                //- .row
+                                    //- .input-field.col.s12.m6
+                                        textarea.materialize-textarea(:id="'comment'+document._id", v-model="document.comment")
+                                        label(for="'comment'+document._id") Comment
+
                                     p.col.s6.m3
-                                        button.btn.full-width.green( :disabled="document.done || document.approved || document.rejected", @click="approveDocument(document._id)" ) Approve
+                                        button.btn.full-width.orange( :disabled="document.done || document.approved || document.rejected", @click="addCommentToPDF(document)" ) Comment
+
+                                    p.col.s6.m3
+                                        button.btn.full-width.orange( :disabled="document.done || document.approved || document.rejected", @click="signDocument(document)" ) Sign
+                                            //- i.material-icons.left done
+                                            //- @click="approveDocument",
+
+                                    p.col.s6.m3
+                                        button.btn.full-width.orange( :disabled="document.done || document.approved || document.rejected", @click="saveDocument(document)" ) Save
+                                            //- i.material-icons.left done
+                                            //- @click="approveDocument",
+
+
+                                    p.col.s6.m3
+                                        button.btn.full-width.green( :disabled="document.done || document.approved || document.rejected", @click="finalizeTextOnCanvas(document)" ) Done
+                                            //- i.material-icons.left done
+                                            //- @click="approveDocument",
+
+
+                                    p.col.s6.m3
+                                        button.btn.full-width.green( :disabled="document.done || document.approved || document.rejected", @click="approveDocument(document)" ) Approve
                                             //- i.material-icons.left done
                                             //- @click="approveDocument",
                                     p.col.s6.m3
-                                        a.btn.full-width.orange( :disabled="document.done || document.rejected || !document.approved", @click="forwardDocumentModalOpen(document._id)" ) Forward
+                                        a.btn.full-width.orange( :disabled="document.done", @click="forwardDocumentModalOpen(document)" ) Forward
                                             //- i.material-icons.left done
                                             //- @click="forwardDocument",
                                     p.col.s6.m3
-                                        button.btn.full-width.blue( :disabled="document.done || document.rejected || !document.approved", @click="finalizeDocument(document._id)" ) Done
+                                        button.btn.full-width.blue( :disabled="document.done || document.rejected || !document.approved", @click="finalizeDocument(document)" ) Finalize
                                             //- i.material-icons.left done
                                             //- @click="finalizeDocument",
                                     p.col.s6.m3
-                                        button.btn.full-width.red( :disabled="document.done || document.approved || document.rejected", @click="rejectDocument(document._id)" ) Reject
+                                        button.btn.full-width.red( :disabled="document.done || document.approved || document.rejected", @click="rejectDocument(document)" ) Reject
                                             //- i.material-icons.left close
                                             //- @click="rejectDocument",
+
+                                    
+
+
 
                                 .row    
                                     h6.light.col.s12 History of Officers: 
@@ -74,12 +109,13 @@ block content
                                                 i.material-icons.circle.blue(v-else="historyItem.action == 'Finalized'") done_all
                                                 span.title {{ historyItem.officer.name }}
                                                 p {{ historyItem.action }} - {{ moment(historyItem.date).format('DD MMM YYYY') }}
+                                                p {{ historyItem.comment }}
 
 
 
 
             .row
-                h5.light.col.s12 Your Applications
+                h5.light.col.s12 Your Generated Files
                 .col.s12
                     ul.collapsible.no-border.z-depth-0
                         li.tilted.z-depth-5(v-for="document in selfdocuments", :key="document._id")
@@ -100,14 +136,14 @@ block content
                                             i.material-icons.left visibility
 
 
-                                    h6.col.s8 Current status: {{ document.rejected ? "Rejected": document.done ? "Done" : "Pending"}}
+                                    h6.col.s8 Current status: {{ document.rejected ? "Rejected": document.done ? "Finalized" : "Pending"}}
 
 
                                     h6.col.s12 Applicant: {{ document.applicant.name }}
                                     h6.col.s12 Current Passing Officer: {{ document.currentOfficer.name }}
 
                                 //- .row(v-if="passingOfficerLoggedIn")
-                                
+
                                 .row    
                                     h6.light.col.s12 History of Officers: 
                                     .col.s12
@@ -119,6 +155,7 @@ block content
                                                 i.material-icons.circle.blue(v-else="historyItem.action == 'Finalized'") done_all
                                                 span.title {{ historyItem.officer.name }}
                                                 p {{ historyItem.action }} - {{ moment(historyItem.date).format('DD MMM YYYY') }}
+                                                p {{ historyItem.comment }}
 
 
 
@@ -182,6 +219,16 @@ block content
                                     option(value="", disabled, selected) Choose your option
                                     option(:value="officer._id",  v-for="officer in officers" :key="officer._id") {{officer.name}}
 
+                            .col.s12
+                                label Format
+                                select.browser-default(name="format", v-model="selectedformat", ref="formatSelect")
+                                    //- option(value="", disabled, selected) Choose your option
+                                    option(value="Case Purchase", selected) Case Purchase
+                                    option(value="Tender Enquiry") Tender Enquiry
+                                    option(value="GFR") GFR
+                                    option(value="Noting") Noting
+                                    option(value="Misceallaneous") Misceallaneous
+
                                 //- select.browser-default.icons(name="officer", v-model="selectedofficer", ref="officerSelect")
                                     option(value="", disabled, selected) Choose your option
                                     option(:value="officer._id", data-icon="/images/office.jpg", v-for="officer in officers" ) {{officer.name}}
@@ -202,7 +249,7 @@ block content
 
 
 
-                        
+
                                 //- button.full-width.btn.waves-effect.waves-light(type="submit") Submit
 
 
@@ -212,7 +259,11 @@ block content
                 a.btn.modal-close.waves-effect.waves-light.green.white-text(@click="onSubmit") Submit
 
 
+        include components/contextmenu.pug
 
 
 block scripts
+    script(src="/js/lib/pdf.js")
+    script(src="/js/lib/jspdf.min.js")
+    script(src="/js/lib/konva.min.js")
     script(src="/js/init/documents.js")

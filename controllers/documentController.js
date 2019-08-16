@@ -1,10 +1,11 @@
 const Document = require('../models/document')
+const fs = require('fs')
 const User = require('../models/user')
 
 const moment = require('moment')
-const aws = require('aws-sdk')
-const S3_BUCKET = process.env.S3_BUCKET
-aws.config.region = process.env.AWS_REGION
+// const aws = require('aws-sdk')
+// const S3_BUCKET = process.env.S3_BUCKET
+// aws.config.region = process.env.AWS_REGION
 const msg91 = require('msg91')('247111AI4S9E1P5bea6b3a', 'OFAJMA', '4')
 
 const util = require('./util')
@@ -71,6 +72,7 @@ exports.document_create_post = (req, res) => {
 		urgent: req.body.urgent,
 		applicant: req.body.applicant,
 		currentOfficer: req.body.officer,
+		format: req.body.format,
 		fileUrl: req.body.fileUrl
 	})
 
@@ -128,7 +130,8 @@ exports.document_forward_post = (req, res) => {
 	let historyItem = {
 		officer: req.body.officer,
 		date: new moment(),
-		action: `Forwarded`
+		action: `Forwarded`,
+		comment: req.body.comment
 	}
 
 	Document.findOneAndUpdate(
@@ -158,7 +161,8 @@ exports.document_reject_post = (req, res) => {
 	let historyItem = {
 		officer: req.body.officer,
 		date: new moment(),
-		action: 'Rejected'
+		action: 'Rejected',
+		comment: req.body.comment
 	}
 
 	Document.findOneAndUpdate({ _id: req.params.id }, { rejected: true, $push: { history: historyItem } }, { safe: true, upsert: true }).exec((err, result) => {
@@ -174,7 +178,8 @@ exports.document_approve_post = (req, res) => {
 	let historyItem = {
 		officer: req.body.officer,
 		date: new moment(),
-		action: 'Approved'
+		action: 'Approved',
+		comment: req.body.comment
 	}
 
 	Document.findOneAndUpdate({ _id: req.params.id }, { approved: true, $push: { history: historyItem } }, { safe: true, upsert: true }).exec((err, result) => {
@@ -186,11 +191,27 @@ exports.document_approve_post = (req, res) => {
 	})
 }
 
+exports.document_save_post = (req, res) => {
+	// console.log(req.body)
+
+	var base64Data = req.body.fileData.replace(/^data:application\/pdf;base64,/, '')
+
+	require('fs').writeFile(__dirname + '/../public' + req.body.fileUrl, base64Data, 'base64', function(err) {
+		if (err) {
+			console.error(err)
+			return res.status(500).send(err)
+		}
+
+		return res.send(true)
+	})
+}
+
 exports.document_finalize_post = (req, res) => {
 	let historyItem = {
 		officer: req.body.officer,
 		date: new moment(),
-		action: 'Finalized'
+		action: 'Finalized',
+		comment: req.body.comment
 	}
 
 	Document.findOneAndUpdate({ _id: req.params.id }, { done: true, $push: { history: historyItem } }, { safe: true, upsert: true }).exec((err, result) => {
@@ -202,31 +223,31 @@ exports.document_finalize_post = (req, res) => {
 	})
 }
 
-exports.document_sign_s3_get = (req, res) => {
-	const s3 = new aws.S3()
-	const fileName = req.query.fileName
-	const fileType = req.query.fileType
+// exports.document_sign_s3_get = (req, res) => {
+// 	const s3 = new aws.S3()
+// 	const fileName = req.query.fileName
+// 	const fileType = req.query.fileType
 
-	const s3Params = {
-		Bucket: S3_BUCKET,
-		Key: fileName,
-		Expires: 60,
-		ContentType: fileType,
-		ACL: 'public-read'
-	}
+// 	const s3Params = {
+// 		Bucket: S3_BUCKET,
+// 		Key: fileName,
+// 		Expires: 60,
+// 		ContentType: fileType,
+// 		ACL: 'public-read'
+// 	}
 
-	s3.getSignedUrl('putObject', s3Params, (err, data) => {
-		if (err) {
-			console.error(err)
-			return res.status(500).send(err)
-		}
-		const returnData = {
-			signedRequest: data,
-			url: `https://${S3_BUCKET}.s3.amazonaws.com/${fileName}`
-		}
-		res.send(JSON.stringify(returnData))
-	})
-}
+// 	s3.getSignedUrl('putObject', s3Params, (err, data) => {
+// 		if (err) {
+// 			console.error(err)
+// 			return res.status(500).send(err)
+// 		}
+// 		const returnData = {
+// 			signedRequest: data,
+// 			url: `https://${S3_BUCKET}.s3.amazonaws.com/${fileName}`
+// 		}
+// 		res.send(JSON.stringify(returnData))
+// 	})
+// }
 
 exports.post_OTP_Request = function(req, res) {
 	User.findById(req.body.officer).exec((err, result) => {
@@ -241,6 +262,9 @@ exports.post_OTP_Request = function(req, res) {
 			if (mobileNo.length != 13) {
 				mobileNo = '+91' + mobileNo
 			}
+
+			// console.log('OTP: ' + OTP)
+			// return res.send({ OTPHash })
 
 			let message = `Enter OTP ${OTP} for authentication.`
 

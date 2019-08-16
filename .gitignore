@@ -68,3 +68,7 @@ typings/
 
 # Temporary files
 temp
+
+# file uploads
+
+public/files/*

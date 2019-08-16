@@ -1,4 +1,9 @@
-let documentsVue
+// Loaded via <script> tag, create shortcut to access PDF.js exports.
+const pdfjsLib = window['pdfjs-dist/build/pdf']
+// The workerSrc property shall be specified.
+pdfjsLib.GlobalWorkerOptions.workerSrc = '/js/lib/pdf.worker.js'
+
+let documentsVue, konvaTransformerInstance
 
 document.addEventListener('DOMContentLoaded', function() {
 	showWait()
@@ -8,6 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			attendingdocuments: [],
 			selfdocuments: [],
 			selectedofficer: '',
+			selectedformat: 'Case Purchase',
 			documentId: '',
 			name: '',
 			fileUrl: '',
@@ -18,27 +24,36 @@ document.addEventListener('DOMContentLoaded', function() {
 			officers: [],
 			forwardOfficer: '',
 			selectedDocument: '',
+
 			OTP: '',
 			OTPHash: ''
 		},
 
 		methods: {
 			poplateDocuments: function() {
-				currentVue = this
+				let currentVue = this
 				fetch(`/api/documents/user/${localStorage.getItem('loggeduser')}/to`)
 					.then(function(response) {
 						return response.json()
 					})
-					.then(function(documents) {
-						documents.forEach((document, docIndex) => {
-							if (document.history.length > 0) document.approved = document.history[document.history.length - 1].action == 'Approved'
-
-							if (document.rejected) documents.splice(docIndex, 1)
+					.then(function(docs) {
+						docs.forEach((doc, docIndex) => {
+							if (doc.history.length > 0) doc.approved = doc.history[doc.history.length - 1].action == 'Approved'
+							doc.isBeingEdited = false
+							doc.isBeingEdited = false
+							doc.isSigned = doc.approved
+							if (doc.rejected) docs.splice(docIndex, 1)
+							doc.comment = ''
 						})
 
-						currentVue.attendingdocuments = documents
+						currentVue.attendingdocuments = docs
 						// currentVue.documents.normal = documents.filter(document => !document.urgent)
 					})
+					.then(()=>{
+						currentVue.renderDocuments()
+
+					})
+
 					.catch(function(error) {
 						M.toast({ html: 'Error occured! Check console for details.' })
 						console.error(error)
@@ -48,8 +63,8 @@ document.addEventListener('DOMContentLoaded', function() {
 					.then(function(response) {
 						return response.json()
 					})
-					.then(function(documents) {
-						currentVue.selfdocuments = documents
+					.then(function(docs) {
+						currentVue.selfdocuments = docs
 						// currentVue.documents.normal = documents.filter(document => !document.urgent)
 					})
 					.catch(function(error) {
@@ -73,16 +88,16 @@ document.addEventListener('DOMContentLoaded', function() {
 					.then(function(response) {
 						return response.json()
 					})
-					.then(function(document) {
-						currentVue.name = document.name
-						currentVue.urgent = document.urgent
-						currentVue.fileUrl = document.fileUrl
-						currentVue.done = document.done
-						currentVue.rejected = document.rejected
-						currentVue._id = document._id
-						currentVue.applicant = document.applicant
+					.then(function(doc) {
+						currentVue.name = doc.name
+						currentVue.urgent = doc.urgent
+						currentVue.fileUrl = doc.fileUrl
+						currentVue.done = doc.done
+						currentVue.rejected = doc.rejected
+						currentVue._id = doc._id
+						currentVue.applicant = doc.applicant
 						// currentVue.currentOfficer = document.currentOfficer
-						currentVue.history = document.history
+						currentVue.history = doc.history
 						currentVue.passingOfficerLoggedIn = localStorage.getItem('loggeduser') == currentVue.currentOfficer._id
 					})
 					.catch(function(error) {
@@ -91,7 +106,7 @@ document.addEventListener('DOMContentLoaded', function() {
 					})
 			},
 
-			rejectDocument: function(documentId) {
+			rejectDocument: function(doc) {
 				if (sessionGet('OTPAuthenticated') == null) {
 					M.toast({ html: 'You need to authenticate session.' })
 					this.sessionSetModal()
@@ -101,16 +116,17 @@ document.addEventListener('DOMContentLoaded', function() {
 				if (confirm('Reject this document?')) {
 					let currentVue = this
 					showWait()
-					fetch(`/api/document/${documentId}/reject`, {
+					fetch(`/api/document/${doc._id}/reject`, {
 						method: 'POST',
 						headers: {
 							'Content-Type': 'application/json'
 						},
-						body: JSON.stringify({ officer: localStorage.getItem('loggeduser') })
+						body: JSON.stringify({ comment: doc.comment, officer: localStorage.getItem('loggeduser') })
 					})
 						.then(function(response) {
 							if (response.status == 200) {
 								M.toast({ html: 'Document rejected!' })
+								doc.comment = ''
 								// currentVue.rejected = true
 							} else {
 								M.toast({ html: 'Error occured! Check console for details.' })
@@ -127,8 +143,7 @@ document.addEventListener('DOMContentLoaded', function() {
 				}
 			},
 
-			forwardDocumentModalOpen: function(documentId) {
-				this.selectedDocument = documentId
+			forwardDocumentModalOpen: function() {
 				M.Modal.getInstance(document.querySelector('#documentForwardModal')).open()
 			},
 
@@ -154,7 +169,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			},
 
 			getOTPRequest: function() {
-				currentVue = this
+				let currentVue = this
 				fetch(`/api/document/getOTP`, {
 					method: 'POST',
 					headers: {
@@ -178,7 +193,7 @@ document.addEventListener('DOMContentLoaded', function() {
 					})
 			},
 
-			approveDocument: function(documentId) {
+			approveDocument: function() {
 				if (sessionGet('OTPAuthenticated') == null) {
 					M.toast({ html: 'You need to authenticate session.' })
 					this.sessionSetModal()
@@ -186,17 +201,35 @@ document.addEventListener('DOMContentLoaded', function() {
 				}
 
 				let currentVue = this
+				let doc = this.selectedDocument
+
 				showWait()
-				fetch(`/api/document/${documentId}/approve`, {
+
+				// let formdata = new FormData()
+
+				// formdata.append('comment', doc.comment)
+				// formdata.append('officer', localStorage.getItem('loggeduser'))
+				// formdata.append('fileData', doc.fileData)
+				// formdata.append('fileUrl', doc.fileUrl)
+
+				fetch(`/api/document/${doc._id}/approve`, {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json'
 					},
-					body: JSON.stringify({ officer: localStorage.getItem('loggeduser') })
+
+					// body: formdata
+					body: JSON.stringify({
+						comment: doc.comment,
+						officer: localStorage.getItem('loggeduser')
+						// fileData: doc.fileData,
+						// fileUrl: doc.fileUrl
+					})
 				})
 					.then(function(response) {
 						if (response.status == 200) {
 							M.toast({ html: 'Document approved!' })
+							doc.comment = ''
 							// currentVue.approved = true
 						} else {
 							M.toast({ html: 'Error occured! Check console for details.' })
@@ -212,19 +245,21 @@ document.addEventListener('DOMContentLoaded', function() {
 					})
 			},
 
-			finalizeDocument: function(documentId) {
+			finalizeDocument: function() {
 				let currentVue = this
+				let doc = currentVue.selectedDocument
 				showWait()
-				fetch(`/api/document/${documentId}/finalize`, {
+				fetch(`/api/document/${doc._id}/finalize`, {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json'
 					},
-					body: JSON.stringify({ officer: localStorage.getItem('loggeduser') })
+					body: JSON.stringify({ comment: doc.comment, officer: localStorage.getItem('loggeduser') })
 				})
 					.then(function(response) {
 						if (response.status == 200) {
 							M.toast({ html: 'Document finalized!' })
+							doc.comment = ''
 							// currentVue.done = true
 						} else {
 							M.toast({ html: 'Error occured! Check console for details.' })
@@ -244,16 +279,17 @@ document.addEventListener('DOMContentLoaded', function() {
 				let currentVue = this
 
 				showWait()
-				fetch(`/api/document/${currentVue.selectedDocument}/forward`, {
+				fetch(`/api/document/${currentVue.selectedDocument._id}/forward`, {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json'
 					},
-					body: JSON.stringify({ officer: localStorage.getItem('loggeduser'), newOfficer: currentVue.forwardOfficer })
+					body: JSON.stringify({ comment: currentVue.selectedDocument.comment, officer: localStorage.getItem('loggeduser'), newOfficer: currentVue.forwardOfficer })
 				})
 					.then(function(response) {
 						if (response.status == 200) {
 							M.toast({ html: 'Document forwarded!' })
+							currentVue.selectedDocument.comment = ''
 							// currentVue.done = true
 						} else {
 							M.toast({ html: 'Error occured! Check console for details.' })
@@ -279,6 +315,7 @@ document.addEventListener('DOMContentLoaded', function() {
 					applicant: this.applicant,
 					name: this.name,
 					officer: this.selectedofficer,
+					format: this.selectedformat,
 					urgent: this.urgent
 				}
 
@@ -306,38 +343,48 @@ document.addEventListener('DOMContentLoaded', function() {
 			onFileUpload: function() {
 				this.file = this.$refs.file.files[0]
 				if (this.file == null) return alert('No file selected.')
-				this.getSignedRequest(this.file)
+				this.uploadFile(this.file)
 			},
 
-			getSignedRequest: function(file) {
+			// getSignedRequest: function(file) {
+			// 	showWait()
+			// 	// console.log(file)
+			// 	currentVue = this
+
+			// 	fetch(`/api/document/sign-s3?fileName=${file.name}&fileType=${file.type}`)
+			// 		.then(function(response) {
+			// 			return response.json()
+			// 		})
+			// 		.then(function(data) {
+			// 			currentVue.uploadFile(file, data.signedRequest, data.url)
+			// 		})
+			// 		.catch(function(error) {
+			// 			M.toast({ html: 'Error occured! Check console for details.' })
+			// 			console.error(error)
+			// 		})
+			// },
+
+			uploadFile: function(file) {
+				// uploadFile: function(file, signedRequest, url) {
 				showWait()
-				// console.log(file)
 				currentVue = this
 
-				fetch(`/api/document/sign-s3?fileName=${file.name}&fileType=${file.type}`)
-					.then(function(response) {
-						return response.json()
-					})
-					.then(function(data) {
-						currentVue.uploadFile(file, data.signedRequest, data.url)
-					})
-					.catch(function(error) {
-						M.toast({ html: 'Error occured! Check console for details.' })
-						console.error(error)
-					})
-			},
-
-			uploadFile: function(file, signedRequest, url) {
-				showWait()
-				currentVue = this
-
-				fetch(signedRequest, {
-					method: 'PUT',
-					mode: 'cors',
-					body: file
+				// fetch(signedRequest, {
+				// 	method: 'PUT',
+				// 	mode: 'cors',
+				// 	body: file
+				// })
+				let fileformdata = new FormData()
+				fileformdata.append('file', file)
+				fetch('/api/document/upload', {
+					method: 'POST',
+					body: fileformdata
 				})
+					.then(response => response.json())
 					.then(function(response) {
-						currentVue.fileUrl = url
+						// currentVue.fileUrl = url
+						currentVue.fileUrl = response.file
+						console.log(response)
 					})
 					.catch(function(error) {
 						M.toast({ html: 'Error occured! Check console for details.' })
@@ -362,6 +409,391 @@ document.addEventListener('DOMContentLoaded', function() {
 						M.toast({ html: 'Error occured! Check console for details.' })
 						console.error(error)
 					})
+			},
+			renderDocuments: function() {
+				this.attendingdocuments.forEach(doc => {
+					let url = doc.fileUrl
+					let pdfid = `pdf${doc._id}`
+					let canvasContainer = document.getElementById(pdfid)
+					
+
+					function renderPage(page) {
+						let wrapper = document.createElement('div')
+						wrapper.className = 'canvas-wrapper'
+						let canvas = document.createElement('canvas')
+						console.log(page)
+						canvas.id = `${pdfid}_page${page.pageIndex}`
+						let ctx = canvas.getContext('2d')
+
+						// console.log(canvasContainer.style.width)
+
+						let viewport = page.getViewport(1 /* canvasContainer.width / page.getViewport(1.0).width */)
+						let renderContext = {
+							canvasContext: ctx,
+							viewport: viewport
+						}
+						canvas.height = viewport.height
+						canvas.width = viewport.width
+
+						wrapper.appendChild(canvas)
+						// console.log(canvasContainer)
+						canvasContainer.appendChild(wrapper)
+
+						page.render(renderContext)
+					}
+
+					function renderPages(pdfDoc) {
+						for (let num = 1; num <= pdfDoc.numPages; num++) pdfDoc.getPage(num).then(renderPage)
+					}
+
+					pdfjsLib.disableWorker = true
+					pdfjsLib.getDocument(url).then(renderPages)
+				})
+			},
+			addCommentToPDF: function() {
+				console.log('in addCommentToPDF')
+				let doc = this.selectedDocument
+				let doccanvas = document.querySelector(`#pdf${doc._id}`)
+				var stage = new Konva.Stage({
+					container: `konva-container${doc._id}`, // id of container <div>
+					width: doccanvas.width,
+					height: doccanvas.height
+				})
+
+				doc.isBeingEdited = true
+
+				var layer = new Konva.Layer()
+				stage.add(layer)
+
+				var textNode = new Konva.Text({
+					text: 'Comment',
+					x: 50,
+					y: 80,
+					fontSize: 20,
+					draggable: true,
+					width: 200
+				})
+
+				layer.add(textNode)
+
+				konvaTransformerInstance = new Konva.Transformer({
+					node: textNode,
+					enabledAnchors: ['middle-left', 'middle-right'],
+					// set minimum width of text
+					boundBoxFunc: function(oldBox, newBox) {
+						newBox.width = Math.max(30, newBox.width)
+						return newBox
+					}
+				})
+
+				textNode.on('transform', function() {
+					// reset scale, so only with is changing by transformer
+					textNode.setAttrs({
+						width: textNode.width() * textNode.scaleX(),
+						scaleX: 1
+					})
+				})
+
+				layer.add(konvaTransformerInstance)
+
+				layer.draw()
+
+				textNode.on('click', () => {
+					konvaTransformerInstance.show()
+				})
+
+				textNode.on('dblclick', () => {
+					// hide text node and transformer:
+					textNode.hide()
+					konvaTransformerInstance.hide()
+					layer.draw()
+
+					// create textarea over canvas with absolute position
+					// first we need to find position for textarea
+					// how to find it?
+
+					// at first lets find position of text node relative to the stage:
+					var textPosition = textNode.absolutePosition()
+
+					// then lets find position of stage container on the page:
+					var stageBox = stage.container().getBoundingClientRect()
+
+					// so position of textarea will be the sum of positions above:
+					var areaPosition = {
+						x: stageBox.left + textPosition.x,
+						y: stageBox.top + textPosition.y
+					}
+
+					// create textarea and style it
+					var textarea = document.createElement('textarea')
+					document.body.appendChild(textarea)
+
+					// apply many styles to match text on canvas as close as possible
+					// remember that text rendering on canvas and on the textarea can be different
+					// and sometimes it is hard to make it 100% the same. But we will try...
+					textarea.value = textNode.text()
+					textarea.style.position = 'absolute'
+					textarea.style.top = areaPosition.y + 'px'
+					textarea.style.left = areaPosition.x + 'px'
+					textarea.style.width = textNode.width() - textNode.padding() * 2 + 'px'
+					textarea.style.height = textNode.height() - textNode.padding() * 2 + 5 + 'px'
+					textarea.style.fontSize = textNode.fontSize() + 'px'
+					// textarea.style.border = 'none'
+					textarea.style.padding = '0px'
+					textarea.style.margin = '0px'
+					textarea.style.overflow = 'hidden'
+					textarea.style.background = 'none'
+					textarea.style.outline = 'none'
+					textarea.style.resize = 'none'
+					textarea.style.lineHeight = textNode.lineHeight()
+					textarea.style.fontFamily = textNode.fontFamily()
+					textarea.style.transformOrigin = 'left top'
+					textarea.style.textAlign = textNode.align()
+					textarea.style.color = textNode.fill()
+					rotation = textNode.rotation()
+					var transform = ''
+					if (rotation) {
+						transform += 'rotateZ(' + rotation + 'deg)'
+					}
+
+					var px = 0
+					// also we need to slightly move textarea on firefox
+					// because it jumps a bit
+					var isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1
+					if (isFirefox) {
+						px += 2 + Math.round(textNode.fontSize() / 20)
+					}
+					transform += 'translateY(-' + px + 'px)'
+
+					textarea.style.transform = transform
+
+					// reset height
+					textarea.style.height = 'auto'
+					// after browsers resized it we can set actual value
+					textarea.style.height = textarea.scrollHeight + 3 + 'px'
+
+					textarea.focus()
+
+					function removeTextarea() {
+						textarea.parentNode.removeChild(textarea)
+						window.removeEventListener('click', handleOutsideClick)
+						textNode.show()
+						// tr.show()
+						konvaTransformerInstance.forceUpdate()
+						layer.draw()
+					}
+
+					function setTextareaWidth(newWidth) {
+						if (!newWidth) {
+							// set width for placeholder
+							newWidth = textNode.placeholder.length * textNode.fontSize()
+						}
+						// some extra fixes on different browsers
+						var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
+						var isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1
+						if (isSafari || isFirefox) {
+							newWidth = Math.ceil(newWidth)
+						}
+
+						var isEdge = document.documentMode || /Edge/.test(navigator.userAgent)
+						if (isEdge) {
+							newWidth += 1
+						}
+						textarea.style.width = newWidth + 'px'
+					}
+
+					textarea.addEventListener('keydown', function(e) {
+						// hide on enter
+						// but don't hide on shift + enter
+						if (e.keyCode === 13 && !e.shiftKey) {
+							textNode.text(textarea.value)
+							removeTextarea()
+						}
+						// on esc do not set value back to node
+						if (e.keyCode === 27) {
+							removeTextarea()
+						}
+					})
+
+					textarea.addEventListener('keydown', function(e) {
+						scale = textNode.getAbsoluteScale().x
+						setTextareaWidth(textNode.width() * scale)
+						textarea.style.height = 'auto'
+						textarea.style.height = textarea.scrollHeight + textNode.fontSize() + 'px'
+					})
+
+					function handleOutsideClick(e) {
+						konvaTransformerInstance.hide()
+						if (e.target !== textarea) {
+							removeTextarea()
+						}
+					}
+					setTimeout(() => {
+						window.addEventListener('click', handleOutsideClick)
+					})
+				})
+			},
+
+			finalizeTextOnCanvas: function() {
+				let doc = this.selectedDocument
+				let doccanvas = document.getElementById(`pdf${doc._id}`)
+				let konvacont = document.getElementById(`konva-container${doc._id}`)
+				let annotationcanvas = konvacont.querySelector('canvas')
+
+				if (konvaTransformerInstance) konvaTransformerInstance.hide()
+				// console.log(annotationcanvas)
+
+				let ctx_doc = doccanvas.getContext('2d')
+				// let ctx_annotation = annotationcanvas.getContext('2d')
+
+				ctx_doc.drawImage(annotationcanvas, 0, 0, annotationcanvas.width, annotationcanvas.height)
+
+				annotationcanvas.parentElement.removeChild(annotationcanvas)
+
+				// doc.fileData = ctx_doc.toDataURL
+
+				var imgData = doccanvas.toDataURL('image/jpeg', 1.0)
+
+				var newPDF = new jsPDF({
+					// orientation: 'p',
+					unit: 'mm',
+					format: 'a4'
+					// putOnlyUsedFonts: false,
+					// compress: false,
+					// precision: 2,
+					// userUnit: 1.0
+				})
+
+				console.log(doccanvas)
+				console.log(annotationcanvas)
+				console.log(newPDF)
+
+				newPDF.addImage(imgData, 'JPEG', 0, 0, newPDF.internal.pageSize.width, newPDF.internal.pageSize.height)
+
+				doc.fileData = newPDF.output('datauristring')
+				// doc.fileData = dataURLtoFile(imgData, 'filedata.jpg')
+
+				// console.log(doc.fileData)
+
+				doc.isBeingEdited = false
+				if (doc.isBeingSigned) {
+					doc.isBeingEdited = false
+					doc.isSigned = true
+				}
+
+				fetch(`/api/document/${doc._id}/save`, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+
+					// body: formdata
+					body: JSON.stringify({
+						fileData: doc.fileData,
+						fileUrl: doc.fileUrl
+					})
+				})
+					.then(function(response) {
+						if (response.status == 200) {
+							M.toast({ html: 'Document saved!' })
+						} else {
+							M.toast({ html: 'Error occured! Check console for details.' })
+						}
+					})
+					.catch(function(error) {
+						M.toast({ html: 'Error occured! Check console for details.' })
+						console.error(error)
+					})
+					.then(function() {
+						hideWait()
+					})
+
+				if (doc.isSigned && !doc.approved) {
+					this.approveDocument()
+				}
+			},
+
+			signDocument: function() {
+				if (sessionGet('OTPAuthenticated') == null) {
+					M.toast({ html: 'You need to authenticate session.' })
+					this.sessionSetModal()
+					return
+				}
+
+				let doc = this.selectedDocument
+
+				doc.isBeingEdited = true
+				doc.isBeingSigned = true
+
+				let doccanvas = document.querySelector(`#pdf${doc._id}`)
+				var stage = new Konva.Stage({
+					container: `konva-container${doc._id}`, // id of container <div>
+					width: doccanvas.width,
+					height: doccanvas.height
+				})
+
+				var layer = new Konva.Layer()
+				var complexText = new Konva.Text({
+					x: 20,
+					y: 60,
+					text: `Digitally Signed by:\n${doc.currentOfficer.name}\nOn: ${new moment()}\nTransaction ID: ${'123456'}.`,
+					fontSize: 16,
+					fontFamily: 'Calibri',
+					fill: '#555',
+					width: 300,
+					padding: 5,
+					align: 'left'
+				})
+
+				var rect = new Konva.Rect({
+					x: 20,
+					y: 60,
+					stroke: '#555',
+					strokeWidth: 1,
+					fill: '#ffffff',
+					width: 175,
+					height: complexText.height(),
+					cornerRadius: 2
+				})
+				var group = new Konva.Group({
+					draggable: true
+				})
+				// add the shapes to the layer
+
+				group.add(rect)
+				group.add(complexText)
+
+				layer.add(group)
+				// add the layer to the stage
+				stage.add(layer)
+
+				layer.draw()
+			},
+			// saveDocument: function(doc) {
+			// 	let doccanvas = document.querySelector(`#pdf${doc._id}`)
+			// 	// only jpeg is supported by jsPDF
+			// 	var imgData = doccanvas.toDataURL('image/jpeg', 1.0)
+
+			// 	doc.fileData = imgData
+			// 	// var pdf = new jsPDF()
+
+			// 	// pdf.addImage(imgData, 'JPEG', 0, 0)
+			// 	// pdf.save('download.pdf')
+			// },
+
+			showContextMenu: function(e, doc) {
+				this.selectedDocument = doc
+				console.log(e.clientX + ',' + e.clientY)
+				let cntnr = document.getElementById('cntnr')
+				cntnr.style.left = e.clientX
+				cntnr.style.top = e.clientY
+				// $("#cntnr").hide(100);
+				cntnr.style.display = 'block'
+
+				document.addEventListener('click', function hidemenu() {
+					cntnr.style.display = 'none'
+					document.removeEventListener('click', hidemenu)
+				})
 			}
 		},
 
@@ -371,6 +803,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			// this.poplateDocument()
 			this.populateOfficers()
 			M.AutoInit()
+
 			// hideWait()
 		}
 	})
