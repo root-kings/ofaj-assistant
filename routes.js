@@ -158,18 +158,19 @@ var storage = multer.diskStorage({
 	},
 	filename: function(req, file, cb) {
 		console.log(file)
-		cb(
-			null,
-			file.originalname
-				.split(' ')
-				.join('_')
-				.split(' ')
-				.join('_') +
-				'_' +
-				Date.now() +
-				'.' +
-				mime.getExtension(file.mimetype)
-		)
+		// cb(
+		// 	null,
+		// 	file.originalname
+		// 		.split(' ')
+		// 		.join('_')
+		// 		.split(' ')
+		// 		.join('_') +
+		// 		'_' +
+		// 		Date.now() +
+		// 		'.' +
+		// 		mime.getExtension(file.mimetype)
+		// )
+		cb(null,file.originalname)
 	}
 })
 

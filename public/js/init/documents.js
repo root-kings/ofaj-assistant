@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			officers: [],
 			forwardOfficer: '',
 			selectedDocument: '',
-
+			docSelectedFlag: false,
 			OTP: '',
 			OTPHash: ''
 		},
@@ -49,9 +49,8 @@ document.addEventListener('DOMContentLoaded', function() {
 						currentVue.attendingdocuments = docs
 						// currentVue.documents.normal = documents.filter(document => !document.urgent)
 					})
-					.then(()=>{
+					.then(() => {
 						currentVue.renderDocuments()
-
 					})
 
 					.catch(function(error) {
@@ -259,7 +258,8 @@ document.addEventListener('DOMContentLoaded', function() {
 					.then(function(response) {
 						if (response.status == 200) {
 							M.toast({ html: 'Document finalized!' })
-							doc.comment = ''
+							doc.comment = '',
+							currentVue.docSelectedFlag = false
 							// currentVue.done = true
 						} else {
 							M.toast({ html: 'Error occured! Check console for details.' })
@@ -415,7 +415,6 @@ document.addEventListener('DOMContentLoaded', function() {
 					let url = doc.fileUrl
 					let pdfid = `pdf${doc._id}`
 					let canvasContainer = document.getElementById(pdfid)
-					
 
 					function renderPage(page) {
 						let wrapper = document.createElement('div')
@@ -453,7 +452,9 @@ document.addEventListener('DOMContentLoaded', function() {
 			addCommentToPDF: function() {
 				console.log('in addCommentToPDF')
 				let doc = this.selectedDocument
-				let doccanvas = document.querySelector(`#pdf${doc._id}`)
+				let doccanvas = document.getElementById(this.selectedDocumentPage)
+
+				console.log(doccanvas)
 				var stage = new Konva.Stage({
 					container: `konva-container${doc._id}`, // id of container <div>
 					width: doccanvas.width,
@@ -636,7 +637,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 			finalizeTextOnCanvas: function() {
 				let doc = this.selectedDocument
-				let doccanvas = document.getElementById(`pdf${doc._id}`)
+				let doccanvas = document.getElementById(this.selectedDocumentPage)
 				let konvacont = document.getElementById(`konva-container${doc._id}`)
 				let annotationcanvas = konvacont.querySelector('canvas')
 
@@ -725,7 +726,7 @@ document.addEventListener('DOMContentLoaded', function() {
 				doc.isBeingEdited = true
 				doc.isBeingSigned = true
 
-				let doccanvas = document.querySelector(`#pdf${doc._id}`)
+				let doccanvas = document.getElementById(this.selectedDocumentPage)
 				var stage = new Konva.Stage({
 					container: `konva-container${doc._id}`, // id of container <div>
 					width: doccanvas.width,
@@ -751,7 +752,7 @@ document.addEventListener('DOMContentLoaded', function() {
 					stroke: '#555',
 					strokeWidth: 1,
 					fill: '#ffffff',
-					width: 175,
+					width: complexText.width(),
 					height: complexText.height(),
 					cornerRadius: 2
 				})
@@ -783,6 +784,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
 			showContextMenu: function(e, doc) {
 				this.selectedDocument = doc
+				if (!this.docSelectedFlag) {
+					this.selectedDocumentPage = e.path[0].id
+					this.docSelectedFlag = true
+				}
+
+				console.log(e)
 				console.log(e.clientX + ',' + e.clientY)
 				let cntnr = document.getElementById('cntnr')
 				cntnr.style.left = e.clientX
